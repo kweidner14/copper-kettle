@@ -1,0 +1,19 @@
+{
+  "name": "astro-payload-starter",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Starter monorepo: Astro (SSG) frontend + Payload CMS 3.x backend (Postgres + S3-compatible storage).",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w apps/web",
+    "dev:cms": "npm run dev -w apps/cms",
+    "build:web": "npm run build -w apps/web",
+    "build:cms": "npm run build -w apps/cms",
+    "lint": "npm run lint -w apps/web && npm run lint -w apps/cms"
+  },
+  "engines": {
+    "node": ">=18.20.0"
+  }
+}

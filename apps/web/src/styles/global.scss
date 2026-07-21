@@ -1,0 +1,117 @@
+@use 'variables' as vars;
+@use 'mixins' as mixins;
+
+:root {
+  --header-height: #{vars.$header-height};
+  --color-bg: #{vars.$color-bg};
+  --color-surface: #{vars.$color-surface};
+  --color-text: #{vars.$color-text};
+  --color-text-muted: #{vars.$color-text-muted};
+  --color-primary: #{vars.$color-primary};
+  --color-border: #{vars.$color-border};
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: vars.$font-family-base;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: vars.$font-family-heading;
+  line-height: 1.2;
+  margin-block: 0 0.5em;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+// Utility: visually hide content while keeping it available to screen readers.
+.sr-only {
+  @include mixins.visually-hidden;
+}
+
+// Skip link: visually hidden until focused, then jumps above the fixed header.
+.skip-link {
+  @include mixins.visually-hidden;
+
+  &:focus {
+    position: fixed;
+    top: vars.$spacing-unit;
+    left: vars.$spacing-unit;
+    width: auto;
+    height: auto;
+    padding: 0.75em 1.25em;
+    clip: auto;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: 4px;
+    z-index: 1000;
+  }
+}
+
+// Room for a fixed header — pages that render <Header /> should add this
+// class to their top-level wrapper (or set scroll-margin-top on anchors).
+.has-fixed-header {
+  padding-top: var(--header-height);
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+
+  &.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

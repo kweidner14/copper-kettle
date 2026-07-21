@@ -1,0 +1,145 @@
+---
+// Manually serializes Payload's Lexical rich text JSON into HTML. Payload
+// doesn't ship an Astro renderer, and pulling in the full React-based
+// @payloadcms/richtext-lexical renderer here would drag React into an
+// otherwise fully static site — so this walks the tree by hand instead.
+import type { LexicalNode, RichTextContent } from '../lib/types'
+
+interface Props {
+  content?: RichTextContent
+}
+
+const { content } = Astro.props
+
+const TEXT_FORMAT = {
+  BOLD: 1,
+  ITALIC: 1 << 1,
+  STRIKETHROUGH: 1 << 2,
+  UNDERLINE: 1 << 3,
+  CODE: 1 << 4,
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+/**
+ * Resolves a Payload internal link node to a site-relative path.
+ * `fields.doc.value` is either a populated document (when the API call used
+ * a `depth` >= 1) or a bare id string — both are handled here rather than
+ * falling back to `fields.url`, which Payload leaves stale/empty for
+ * internal links.
+ */
+function resolveInternalLink(fields: NonNullable<LexicalNode['fields']>): string {
+  const doc = fields.doc
+  if (!doc) return fields.url ?? '#'
+
+  const value = doc.value
+  const slug = typeof value === 'object' ? value.slug : undefined
+
+  if (!slug) {
+    // Doc wasn't populated (depth: 0) — we only have an id, can't build a
+    // real path, so fall back to a same-page anchor rather than a broken link.
+    return '#'
+  }
+
+  switch (doc.relationTo) {
+    case 'pages':
+      return slug === 'home' ? '/' : `/${slug}`
+    case 'posts':
+      return `/blog/${slug}`
+    default:
+      return `/${slug}`
+  }
+}
+
+function serializeChildren(node: LexicalNode): string {
+  return (node.children ?? []).map(serializeNode).join('')
+}
+
+function serializeNode(node: LexicalNode): string {
+  switch (node.type) {
+    case 'root':
+      return serializeChildren(node)
+
+    case 'paragraph':
+      return `<p>${serializeChildren(node)}</p>`
+
+    case 'heading': {
+      const tag = node.tag ?? 'h2'
+      return `<${tag}>${serializeChildren(node)}</${tag}>`
+    }
+
+    case 'list': {
+      const tag = node.listType === 'number' ? 'ol' : 'ul'
+      return `<${tag}>${serializeChildren(node)}</${tag}>`
+    }
+
+    case 'listitem':
+      return `<li>${serializeChildren(node)}</li>`
+
+    case 'quote':
+      return `<blockquote>${serializeChildren(node)}</blockquote>`
+
+    case 'linebreak':
+      return '<br />'
+
+    case 'link': {
+      const fields = node.fields
+      if (!fields) return serializeChildren(node)
+
+      const href =
+        fields.linkType === 'internal' ? resolveInternalLink(fields) : (fields.url ?? '#')
+      const target = fields.newTab ? ' target="_blank" rel="noopener noreferrer"' : ''
+
+      return `<a href="${escapeHtml(href)}"${target}>${serializeChildren(node)}</a>`
+    }
+
+    case 'text': {
+      let text = escapeHtml(node.text ?? '')
+      const format = Number(node.format ?? 0)
+
+      if (format & TEXT_FORMAT.CODE) text = `<code>${text}</code>`
+      if (format & TEXT_FORMAT.BOLD) text = `<strong>${text}</strong>`
+      if (format & TEXT_FORMAT.ITALIC) text = `<em>${text}</em>`
+      if (format & TEXT_FORMAT.STRIKETHROUGH) text = `<s>${text}</s>`
+      if (format & TEXT_FORMAT.UNDERLINE) text = `<u>${text}</u>`
+
+      return text
+    }
+
+    default:
+      // Unknown node type — render children so content isn't silently
+      // dropped, but skip the wrapping element we don't have a mapping for.
+      return serializeChildren(node)
+  }
+}
+
+const html = content?.root ? serializeNode(content.root) : ''
+---
+
+<div class="rich-text" set:html={html} />
+
+<style lang="scss">
+  .rich-text {
+    :global(h2),
+    :global(h3),
+    :global(h4) {
+      margin-block-start: 1.5em;
+    }
+
+    :global(ul),
+    :global(ol) {
+      padding-inline-start: 1.5em;
+    }
+
+    :global(a) {
+      color: var(--color-primary);
+    }
+  }
+</style>

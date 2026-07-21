@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+.output/
+.next/
+out/
+
+# env
+.env
+.env.*
+!.env.example
+
+# astro
+apps/web/.astro/
+
+# payload
+apps/cms/.next/
+apps/cms/*.db
+
+# misc
+.DS_Store
+*.log
+.idea/
+.vscode/

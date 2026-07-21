@@ -1,0 +1,77 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import RichText from '../../components/RichText.astro'
+import { getPosts } from '../../lib/api'
+import type { Post } from '../../lib/types'
+
+export async function getStaticPaths() {
+  const posts = await getPosts(2)
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }))
+}
+
+interface Props {
+  post: Post
+}
+
+const { post } = Astro.props
+
+const title = post.seo?.metaTitle || post.title
+const description = post.seo?.metaDescription || post.excerpt || ''
+const featuredImage =
+  typeof post.featuredImage === 'object' && post.featuredImage ? post.featuredImage : null
+---
+
+<Layout title={title} description={description}>
+  <article class="post" data-reveal>
+    <div class="post__inner">
+      <h1 class="post__title">{post.title}</h1>
+      {
+        post.publishedAt && (
+          <p class="post__date">
+            <time datetime={post.publishedAt}>
+              {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </time>
+          </p>
+        )
+      }
+      {
+        featuredImage && (
+          <img class="post__image" src={featuredImage.url} alt={featuredImage.alt} />
+        )
+      }
+      {post.content && <RichText content={post.content} />}
+    </div>
+  </article>
+</Layout>
+
+<style lang="scss">
+  @use '../../styles/mixins' as mixins;
+  @use '../../styles/variables' as vars;
+
+  .post {
+    padding-block: vars.$spacing-unit * 6;
+
+    &__inner {
+      @include mixins.container;
+      max-width: 42rem;
+    }
+
+    &__date {
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+
+    &__image {
+      width: 100%;
+      border-radius: 8px;
+      margin-block: vars.$spacing-unit * 3;
+    }
+  }
+</style>

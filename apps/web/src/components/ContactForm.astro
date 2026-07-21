@@ -1,0 +1,110 @@
+---
+const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
+---
+
+<form class="contact-form" id="contact-form" data-endpoint={`${apiUrl}/api/contact`}>
+  <div class="contact-form__field">
+    <label class="contact-form__label" for="contact-name">Name</label>
+    <input class="contact-form__input" id="contact-name" name="name" type="text" required />
+  </div>
+
+  <div class="contact-form__field">
+    <label class="contact-form__label" for="contact-email">Email</label>
+    <input class="contact-form__input" id="contact-email" name="email" type="email" required />
+  </div>
+
+  <div class="contact-form__field">
+    <label class="contact-form__label" for="contact-message">Message</label>
+    <textarea class="contact-form__textarea" id="contact-message" name="message" rows="5" required
+    ></textarea>
+  </div>
+
+  <button class="contact-form__submit" type="submit">Send message</button>
+
+  <p class="contact-form__status" id="contact-form-status" role="status" aria-live="polite"></p>
+</form>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#contact-form')
+  const status = document.querySelector<HTMLParagraphElement>('#contact-form-status')
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if (!status) return
+
+    const endpoint = form.dataset.endpoint
+    const formData = new FormData(form)
+    const payload = Object.fromEntries(formData.entries())
+
+    status.textContent = 'Sending…'
+
+    try {
+      const res = await fetch(endpoint ?? '', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error('Request failed')
+
+      status.textContent = "Thanks — we'll be in touch soon."
+      form.reset()
+    } catch {
+      status.textContent = 'Something went wrong. Please try again or email us directly.'
+    }
+  })
+</script>
+
+<style lang="scss">
+  @use '../styles/variables' as vars;
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: vars.$spacing-unit * 2;
+    max-width: 32rem;
+
+    &__field {
+      display: flex;
+      flex-direction: column;
+      gap: vars.$spacing-unit;
+    }
+
+    &__label {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    &__input,
+    &__textarea {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: vars.$spacing-unit * 1.5;
+      color: var(--color-text);
+      font: inherit;
+    }
+
+    &__submit {
+      align-self: flex-start;
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: vars.$spacing-unit * 1.5 vars.$spacing-unit * 3;
+      font: inherit;
+      cursor: pointer;
+
+      &:hover,
+      &:focus-visible {
+        opacity: 0.9;
+      }
+    }
+
+    &__status {
+      min-height: 1.25em;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+  }
+</style>

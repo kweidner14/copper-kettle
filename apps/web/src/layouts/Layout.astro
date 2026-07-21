@@ -1,0 +1,78 @@
+---
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+import '../styles/global.scss'
+
+export interface Props {
+  title: string
+  description: string
+  canonicalUrl?: string
+  ogImage?: string
+  noindex?: boolean
+}
+
+const { title, description, canonicalUrl, ogImage, noindex = false } = Astro.props
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? ''
+const canonical = canonicalUrl ?? `${siteUrl}${Astro.url.pathname}`
+const resolvedOgImage = ogImage ?? `${siteUrl}/og-default.png`
+const ga4Id = import.meta.env.PUBLIC_GA4_ID ?? ''
+
+// Swap this for the schema.org type that actually matches the business
+// (LocalBusiness, MusicGroup, Organization, etc.) — Organization is a safe,
+// generic default for a starter template.
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: title,
+  url: siteUrl,
+  description,
+}
+---
+
+<!doctype html>
+<html lang="en" data-ga4-id={ga4Id || undefined}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={resolvedOgImage} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={resolvedOgImage} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <Header />
+
+    <main id="main-content" class="has-fixed-header">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <script>
+      import '../scripts/reveal'
+    </script>
+    <script>
+      import '../scripts/analytics'
+    </script>
+  </body>
+</html>

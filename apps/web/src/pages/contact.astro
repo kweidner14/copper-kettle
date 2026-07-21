@@ -1,0 +1,39 @@
+---
+import Layout from '../layouts/Layout.astro'
+import ContactForm from '../components/ContactForm.astro'
+import NewsletterForm from '../components/NewsletterForm.astro'
+---
+
+<Layout title="Contact" description="Get in touch.">
+  <section class="contact-page" data-reveal>
+    <div class="contact-page__inner">
+      <h1 class="contact-page__title">Contact</h1>
+      <ContactForm />
+    </div>
+  </section>
+
+  <section class="contact-page contact-page--newsletter" data-reveal>
+    <div class="contact-page__inner">
+      <h2 class="contact-page__title">Newsletter</h2>
+      <NewsletterForm />
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  @use '../styles/mixins' as mixins;
+  @use '../styles/variables' as vars;
+
+  .contact-page {
+    padding-block: vars.$spacing-unit * 6;
+
+    &--newsletter {
+      border-top: 1px solid var(--color-border);
+    }
+
+    &__inner {
+      @include mixins.container;
+      max-width: 42rem;
+    }
+  }
+</style>

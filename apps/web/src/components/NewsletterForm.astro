@@ -1,0 +1,109 @@
+---
+const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
+---
+
+<form class="newsletter-form" id="newsletter-form" data-endpoint={`${apiUrl}/api/newsletter`}>
+  <label class="newsletter-form__label" for="newsletter-email">Email</label>
+  <div class="newsletter-form__row">
+    <input
+      class="newsletter-form__input"
+      id="newsletter-email"
+      name="email"
+      type="email"
+      placeholder="you@example.com"
+      required
+    />
+    <button class="newsletter-form__submit" type="submit">Subscribe</button>
+  </div>
+  <p
+    class="newsletter-form__status"
+    id="newsletter-form-status"
+    role="status"
+    aria-live="polite"
+  >
+  </p>
+</form>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#newsletter-form')
+  const status = document.querySelector<HTMLParagraphElement>('#newsletter-form-status')
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if (!status) return
+
+    const endpoint = form.dataset.endpoint
+    const formData = new FormData(form)
+    const payload = Object.fromEntries(formData.entries())
+
+    status.textContent = 'Subscribing…'
+
+    try {
+      const res = await fetch(endpoint ?? '', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error('Request failed')
+
+      status.textContent = "You're subscribed."
+      form.reset()
+    } catch {
+      status.textContent = 'Something went wrong. Please try again.'
+    }
+  })
+</script>
+
+<style lang="scss">
+  @use '../styles/variables' as vars;
+
+  .newsletter-form {
+    display: flex;
+    flex-direction: column;
+    gap: vars.$spacing-unit;
+    max-width: 24rem;
+
+    &__label {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    &__row {
+      display: flex;
+      gap: vars.$spacing-unit;
+    }
+
+    &__input {
+      flex: 1;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: vars.$spacing-unit * 1.5;
+      color: var(--color-text);
+      font: inherit;
+    }
+
+    &__submit {
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: vars.$spacing-unit * 1.5 vars.$spacing-unit * 2;
+      font: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+
+      &:hover,
+      &:focus-visible {
+        opacity: 0.9;
+      }
+    }
+
+    &__status {
+      min-height: 1.25em;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+  }
+</style>

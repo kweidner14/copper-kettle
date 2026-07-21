@@ -1,0 +1,44 @@
+---
+import Layout from '../layouts/Layout.astro'
+import RichText from '../components/RichText.astro'
+import { getPage } from '../lib/api'
+
+const page = await getPage('privacy-policy')
+
+const title = page?.seo?.metaTitle || page?.title || 'Privacy Policy'
+const description = page?.seo?.metaDescription || 'Our privacy policy.'
+---
+
+<Layout title={title} description={description}>
+  <section class="page-content" data-reveal>
+    <div class="page-content__inner">
+      <h1 class="page-content__title">{page?.title ?? 'Privacy Policy'}</h1>
+      {!page && (
+        <p class="page-content__hint">
+          No "privacy-policy" page found in Payload yet — create a Page with slug{' '}
+          <code>privacy-policy</code>.
+        </p>
+      )}
+      {page?.content && <RichText content={page.content} />}
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  @use '../styles/mixins' as mixins;
+  @use '../styles/variables' as vars;
+
+  .page-content {
+    padding-block: vars.$spacing-unit * 6;
+
+    &__inner {
+      @include mixins.container;
+      max-width: 42rem;
+    }
+
+    &__hint {
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+  }
+</style>

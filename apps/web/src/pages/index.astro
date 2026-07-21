@@ -1,0 +1,113 @@
+---
+import Layout from '../layouts/Layout.astro'
+import RichText from '../components/RichText.astro'
+import { getPage, getPosts } from '../lib/api'
+
+const page = await getPage('home')
+const recentPosts = (await getPosts()).slice(0, 3)
+
+const title = page?.seo?.metaTitle || page?.title || 'Home'
+const description =
+  page?.seo?.metaDescription || 'Starter template for an Astro + Payload CMS site.'
+---
+
+<Layout title={title} description={description}>
+  <section class="hero" data-reveal>
+    <div class="hero__inner">
+      <!-- Purely decorative — aria-hidden so screen readers skip it. -->
+      <svg
+        class="hero__accent"
+        aria-hidden="true"
+        focusable="false"
+        viewBox="0 0 48 48"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="24" cy="24" r="20" fill="currentColor" />
+      </svg>
+      <h1 class="hero__title">{page?.title ?? 'Welcome'}</h1>
+      {!page && (
+        <p class="hero__hint">
+          No "home" page found in Payload yet — create a Page with slug <code>home</code> to
+          replace this placeholder.
+        </p>
+      )}
+      {page?.content && <RichText content={page.content} />}
+    </div>
+  </section>
+
+  {
+    recentPosts.length > 0 && (
+      <section class="recent-posts" data-reveal>
+        <div class="recent-posts__inner">
+          <h2 class="recent-posts__title">Latest posts</h2>
+          <ul class="recent-posts__list">
+            {recentPosts.map((post) => (
+              <li class="recent-posts__item">
+                <a class="recent-posts__link" href={`/blog/${post.slug}`}>
+                  {post.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+</Layout>
+
+<style lang="scss">
+  @use '../styles/variables' as vars;
+  @use '../styles/mixins' as mixins;
+
+  .hero {
+    padding-block: vars.$spacing-unit * 8;
+
+    &__inner {
+      @include mixins.container;
+    }
+
+    &__accent {
+      width: 2.5rem;
+      height: 2.5rem;
+      color: var(--color-primary);
+      margin-block-end: vars.$spacing-unit * 2;
+    }
+
+    &__title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+    }
+
+    &__hint {
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+  }
+
+  .recent-posts {
+    padding-block: vars.$spacing-unit * 6;
+    border-top: 1px solid var(--color-border);
+
+    &__inner {
+      @include mixins.container;
+    }
+
+    &__list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: vars.$spacing-unit * 2;
+    }
+
+    &__link {
+      text-decoration: none;
+      font-size: 1.125rem;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--color-primary);
+      }
+    }
+  }
+</style>

@@ -8,16 +8,21 @@
     "build": "astro build",
     "preview": "astro preview",
     "lint": "astro check",
-    "astro": "astro"
+    "astro": "astro",
+    "codegen": "graphql-codegen --config .graphqlrc.ts",
+    "codegen:watch": "graphql-codegen --config .graphqlrc.ts --watch"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.1",
+    "graphql": "^16.14.1",
     "sass": "^1.79.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@graphql-codegen/cli": "^6.2.1",
+    "@shopify/api-codegen-preset": "^3.0.0",
     "typescript": "^5.5.0",
     "wrangler": "^4.129.1"
   }

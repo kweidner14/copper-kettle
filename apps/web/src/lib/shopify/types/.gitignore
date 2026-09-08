@@ -1,0 +1,4 @@
+# The introspected schema is ~800KB and reproducible with `npm run codegen`.
+# The generated .d.ts files ARE committed so a fresh clone type-checks without
+# a network round trip.
+*.schema.json

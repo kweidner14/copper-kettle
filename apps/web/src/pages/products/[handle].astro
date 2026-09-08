@@ -1,0 +1,298 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import Price from '../../components/shop/Price.astro'
+import VariantPicker from '../../components/shop/VariantPicker.astro'
+import { createShopifyApi } from '../../lib/shopify/api'
+import { formatMoney } from '../../lib/shopify/money'
+import { resolveVariantSelection } from '../../lib/shopify/variants'
+import { formatWeight, variantWeightInGrams } from '../../lib/shopify/weight'
+
+// SSR: `quantityAvailable` and `availableForSale` are read per request, so the
+// page can never advertise stock the store no longer has.
+const { handle } = Astro.params
+
+const shopify = createShopifyApi(Astro)
+const product = handle ? await shopify.getProduct(handle) : null
+
+if (!product) {
+  return Astro.rewrite('/404')
+}
+
+const { options, selectedVariant, selectedOptions } = resolveVariantSelection(product, Astro.url)
+
+const heroImage = selectedVariant?.image ?? product.featuredImage
+const galleryImages = product.images.nodes.filter((image) => image.url !== heroImage?.url)
+
+const weightLabel = formatWeight(selectedVariant ? variantWeightInGrams(selectedVariant) : null)
+
+const inStock = selectedVariant?.availableForSale ?? false
+const remaining = selectedVariant?.quantityAvailable ?? null
+const lowStock = inStock && remaining !== null && remaining > 0 && remaining <= 5
+
+// Variant params are navigation state, not distinct pages — point every
+// combination at the bare product URL so they do not compete in search.
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? ''
+const canonicalUrl = `${siteUrl}/products/${product.handle}`
+
+const title = product.seo?.title || product.title
+const description =
+  product.seo?.description ||
+  `${product.title} from Copper Kettle. ${formatMoney(product.priceRange.minVariantPrice)}.`
+---
+
+<Layout title={title} description={description} canonicalUrl={canonicalUrl} ogImage={heroImage?.url}>
+  <article class="product">
+    <div class="product__inner">
+      <nav class="product__breadcrumb" aria-label="Breadcrumb">
+        <a href="/products">Shop all</a>
+        <span aria-hidden="true">/</span>
+        <span>{product.title}</span>
+      </nav>
+
+      <div class="product__layout">
+        <div class="product__media">
+          {
+            heroImage ? (
+              <img
+                class="product__image"
+                src={heroImage.url}
+                alt={heroImage.altText ?? product.title}
+                width={heroImage.width ?? 900}
+                height={heroImage.height ?? 900}
+                loading="eager"
+              />
+            ) : (
+              <div class="product__image product__image--placeholder" aria-hidden="true" />
+            )
+          }
+
+          {
+            galleryImages.length > 0 && (
+              <ul class="product__thumbs" role="list">
+                {galleryImages.map((image) => (
+                  <li>
+                    <img
+                      class="product__thumb"
+                      src={image.url}
+                      alt={image.altText ?? ''}
+                      width={image.width ?? 160}
+                      height={image.height ?? 160}
+                      loading="lazy"
+                    />
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+        </div>
+
+        <div class="product__details">
+          {product.vendor && <p class="product__vendor">{product.vendor}</p>}
+          <h1 class="product__title">{product.title}</h1>
+
+          {
+            selectedVariant ? (
+              <Price
+                class="product__price"
+                price={selectedVariant.price}
+                compareAtPrice={selectedVariant.compareAtPrice}
+              />
+            ) : (
+              <Price
+                class="product__price"
+                price={product.priceRange.minVariantPrice}
+                maxPrice={product.priceRange.maxVariantPrice}
+              />
+            )
+          }
+
+          <VariantPicker options={options} />
+
+          <p class:list={['product__stock', !inStock && 'product__stock--out']}>
+            {!inStock && 'Sold out'}
+            {inStock && lowStock && `Only ${remaining} left`}
+            {inStock && !lowStock && 'In stock'}
+          </p>
+
+          {/* No cart yet — the button is inert until the cart endpoints land.
+              The variant is already resolved server-side, so when they do the
+              browser still never has to map options to a variant id. */}
+          <button class="product__add" type="button" disabled>
+            {inStock ? 'Add to cart' : 'Unavailable'}
+          </button>
+
+          <dl class="product__meta">
+            {
+              selectedVariant?.sku && (
+                <>
+                  <dt>SKU</dt>
+                  <dd>{selectedVariant.sku}</dd>
+                </>
+              )
+            }
+            {
+              weightLabel && (
+                <>
+                  <dt>Shipping weight</dt>
+                  {/* Normalised to grams first: this catalog stores weights in
+                      both OUNCES and POUNDS on the same product. */}
+                  <dd>{weightLabel}</dd>
+                </>
+              )
+            }
+            {
+              selectedOptions.length > 0 && (
+                <>
+                  <dt>Selected</dt>
+                  <dd>{selectedOptions.map((option) => option.value).join(' / ')}</dd>
+                </>
+              )
+            }
+          </dl>
+
+          {
+            product.descriptionHtml && (
+              <div class="product__description" set:html={product.descriptionHtml} />
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </article>
+</Layout>
+
+<style lang="scss">
+  @use '../../styles/mixins' as mixins;
+  @use '../../styles/variables' as vars;
+
+  .product {
+    padding-block: vars.$spacing-unit * 6;
+
+    &__inner {
+      @include mixins.container;
+    }
+
+    &__breadcrumb {
+      display: flex;
+      gap: vars.$spacing-unit;
+      margin-block-end: vars.$spacing-unit * 3;
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+
+      a {
+        color: inherit;
+      }
+    }
+
+    &__layout {
+      display: grid;
+      gap: vars.$spacing-unit * 5;
+
+      @include mixins.respond-to(lg) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+        align-items: start;
+      }
+    }
+
+    &__image {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+
+      &--placeholder {
+        display: block;
+      }
+    }
+
+    &__thumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: vars.$spacing-unit;
+      margin-block-start: vars.$spacing-unit;
+      padding: 0;
+      list-style: none;
+    }
+
+    &__thumb {
+      width: 4.5rem;
+      height: 4.5rem;
+      object-fit: cover;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+    }
+
+    &__details {
+      display: grid;
+      gap: vars.$spacing-unit * 2.5;
+    }
+
+    &__vendor {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    &__title {
+      margin: 0;
+      font-size: 1.75rem;
+    }
+
+    &__price {
+      font-size: 1.25rem;
+    }
+
+    &__stock {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+
+      &--out {
+        color: var(--color-text);
+      }
+    }
+
+    &__add {
+      width: 100%;
+      padding: 0.875rem 1.25rem;
+      border: 0;
+      border-radius: 6px;
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+
+      &:disabled {
+        background: var(--color-surface);
+        color: var(--color-text-muted);
+        cursor: not-allowed;
+      }
+    }
+
+    &__meta {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.25rem vars.$spacing-unit * 2;
+      margin: 0;
+      font-size: 0.875rem;
+
+      dt {
+        color: var(--color-text-muted);
+      }
+
+      dd {
+        margin: 0;
+      }
+    }
+
+    &__description {
+      color: var(--color-text-muted);
+      line-height: 1.7;
+    }
+  }
+</style>

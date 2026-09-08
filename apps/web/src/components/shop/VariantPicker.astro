@@ -1,0 +1,143 @@
+---
+import type { OptionState } from '../../lib/shopify/variants'
+
+interface Props {
+  options: OptionState[]
+}
+
+const { options } = Astro.props
+---
+
+{/* Renders nothing for a product with no real options — the caller does not need to branch. */}
+{
+  options.length > 0 && (
+    <div class="variant-picker">
+      {options.map((option) => (
+        <fieldset class="variant-picker__group">
+          <legend class="variant-picker__legend">{option.name}</legend>
+
+          <ul class="variant-picker__values" role="list">
+            {option.values.map((value) => (
+              <li>
+                {value.exists ? (
+                  /*
+                   * Exists but sold out stays clickable: the customer should be
+                   * able to land on it and see the stock message, then change a
+                   * different dimension. Only genuinely non-existent
+                   * combinations are dead.
+                   */
+                  <a
+                    class:list={[
+                      'variant-picker__value',
+                      value.selected && 'variant-picker__value--selected',
+                      !value.available && 'variant-picker__value--unavailable',
+                    ]}
+                    href={value.href}
+                    aria-current={value.selected ? 'true' : undefined}
+                    rel="nofollow"
+                  >
+                    {value.swatchColor && (
+                      <span
+                        class="variant-picker__swatch"
+                        style={`--swatch: ${value.swatchColor}`}
+                        aria-hidden="true"
+                      />
+                    )}
+                    {value.value}
+                    {!value.available && <span class="visually-hidden"> (sold out)</span>}
+                  </a>
+                ) : (
+                  <span
+                    class="variant-picker__value variant-picker__value--disabled"
+                    aria-disabled="true"
+                  >
+                    {value.value}
+                    <span class="visually-hidden"> (unavailable in this combination)</span>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      ))}
+    </div>
+  )
+}
+
+<style lang="scss">
+  @use '../../styles/mixins' as mixins;
+  @use '../../styles/variables' as vars;
+
+  .visually-hidden {
+    @include mixins.visually-hidden;
+  }
+
+  .variant-picker {
+    display: grid;
+    gap: vars.$spacing-unit * 2.5;
+
+    &__group {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    &__legend {
+      padding: 0;
+      margin-block-end: vars.$spacing-unit;
+      color: var(--color-text-muted);
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    &__values {
+      display: flex;
+      flex-wrap: wrap;
+      gap: vars.$spacing-unit;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    &__value {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.875rem;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: inherit;
+      font-size: 0.9375rem;
+      text-decoration: none;
+
+      &--selected {
+        border-color: var(--color-primary);
+        background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+      }
+
+      // In stock elsewhere, but this exact variant is out.
+      &--unavailable {
+        color: var(--color-text-muted);
+        text-decoration: line-through;
+        text-decoration-thickness: 1px;
+      }
+
+      // No such variant exists at all.
+      &--disabled {
+        border-style: dashed;
+        color: var(--color-text-muted);
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+    }
+
+    &__swatch {
+      width: 0.875rem;
+      height: 0.875rem;
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      background: var(--swatch, transparent);
+    }
+  }
+</style>

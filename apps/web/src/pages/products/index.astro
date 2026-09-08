@@ -1,0 +1,99 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import Pagination from '../../components/shop/Pagination.astro'
+import ProductCard from '../../components/shop/ProductCard.astro'
+import { createShopifyApi, paginationFromUrl } from '../../lib/shopify/api'
+
+// SSR, not prerendered: the grid shows live sold-out state. A prerendered grid
+// would go stale the moment inventory moved, which is the one thing a store
+// cannot be wrong about.
+const shopify = createShopifyApi(Astro)
+const { products, pageInfo } = await shopify.getProducts({
+  ...paginationFromUrl(Astro.url),
+  sortKey: 'BEST_SELLING',
+})
+---
+
+<Layout title="Shop all coffee" description="Every roast, grind and size in the Copper Kettle range.">
+  <section class="catalog">
+    <div class="catalog__inner">
+      <header class="catalog__header">
+        <h1 class="catalog__title">Shop all</h1>
+        <p class="catalog__count">
+          {products.length}
+          {products.length === 1 ? 'product' : 'products'}
+        </p>
+      </header>
+
+      {
+        products.length === 0 ? (
+          <p class="catalog__empty">
+            No products are published to the Headless sales channel yet.
+          </p>
+        ) : (
+          <ul class="catalog__grid" role="list">
+            {products.map((product, index) => (
+              <li>
+                <ProductCard product={product} eager={index < 4} />
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      <Pagination pageInfo={pageInfo} basePath="/products" />
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  @use '../../styles/mixins' as mixins;
+  @use '../../styles/variables' as vars;
+
+  .catalog {
+    padding-block: vars.$spacing-unit * 6;
+
+    &__inner {
+      @include mixins.container;
+    }
+
+    &__header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: vars.$spacing-unit * 2;
+      margin-block-end: vars.$spacing-unit * 4;
+    }
+
+    &__title {
+      margin: 0;
+    }
+
+    &__count {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+
+    &__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: vars.$spacing-unit * 3;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      @include mixins.respond-to(md) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      @include mixins.respond-to(lg) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    &__empty {
+      color: var(--color-text-muted);
+    }
+  }
+</style>

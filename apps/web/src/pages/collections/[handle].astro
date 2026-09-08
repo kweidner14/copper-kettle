@@ -1,0 +1,120 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import Pagination from '../../components/shop/Pagination.astro'
+import ProductCard from '../../components/shop/ProductCard.astro'
+import { createShopifyApi, paginationFromUrl } from '../../lib/shopify/api'
+
+const { handle } = Astro.params
+
+const shopify = createShopifyApi(Astro)
+const collection = handle
+  ? await shopify.getCollection(handle, paginationFromUrl(Astro.url))
+  : null
+
+if (!collection) {
+  return Astro.rewrite('/404')
+}
+
+const products = collection.products.nodes
+const title = collection.seo?.title || collection.title
+const description = collection.seo?.description || `${collection.title} from Copper Kettle.`
+---
+
+<Layout title={title} description={description} ogImage={collection.image?.url}>
+  <section class="collection">
+    <div class="collection__inner">
+      <header class="collection__header">
+        <nav class="collection__breadcrumb" aria-label="Breadcrumb">
+          <a href="/collections">Collections</a>
+          <span aria-hidden="true">/</span>
+          <span>{collection.title}</span>
+        </nav>
+
+        <h1 class="collection__title">{collection.title}</h1>
+
+        {
+          collection.descriptionHtml && (
+            <div class="collection__description" set:html={collection.descriptionHtml} />
+          )
+        }
+      </header>
+
+      {
+        products.length === 0 ? (
+          <p class="collection__empty">Nothing in this collection yet.</p>
+        ) : (
+          <ul class="collection__grid" role="list">
+            {products.map((product, index) => (
+              <li>
+                <ProductCard product={product} eager={index < 4} />
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      <Pagination pageInfo={collection.products.pageInfo} basePath={`/collections/${collection.handle}`} />
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  @use '../../styles/mixins' as mixins;
+  @use '../../styles/variables' as vars;
+
+  .collection {
+    padding-block: vars.$spacing-unit * 6;
+
+    &__inner {
+      @include mixins.container;
+    }
+
+    &__header {
+      margin-block-end: vars.$spacing-unit * 4;
+    }
+
+    &__breadcrumb {
+      display: flex;
+      gap: vars.$spacing-unit;
+      margin-block-end: vars.$spacing-unit * 2;
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+
+      a {
+        color: inherit;
+      }
+    }
+
+    &__title {
+      margin: 0;
+    }
+
+    &__description {
+      margin-block-start: vars.$spacing-unit;
+      max-width: 44rem;
+      color: var(--color-text-muted);
+      line-height: 1.7;
+    }
+
+    &__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: vars.$spacing-unit * 3;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      @include mixins.respond-to(md) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      @include mixins.respond-to(lg) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    &__empty {
+      color: var(--color-text-muted);
+    }
+  }
+</style>

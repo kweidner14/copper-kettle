@@ -1,0 +1,113 @@
+---
+import Price from './Price.astro'
+import type { ProductCard } from '../../lib/shopify/models'
+
+interface Props {
+  product: ProductCard
+  /** Eager-load the first row so the grid does not pop in on LCP. */
+  eager?: boolean
+}
+
+const { product, eager = false } = Astro.props
+
+const image = product.featuredImage
+const minPrice = product.priceRange.minVariantPrice
+const maxPrice = product.priceRange.maxVariantPrice
+const compareAt = product.compareAtPriceRange.minVariantPrice
+const variantCount = product.variantsCount?.count ?? 0
+---
+
+<article class="product-card">
+  <a class="product-card__link" href={`/products/${product.handle}`}>
+    <div class="product-card__media">
+      {
+        image ? (
+          <img
+            class="product-card__image"
+            src={image.url}
+            alt={image.altText ?? product.title}
+            width={image.width ?? 600}
+            height={image.height ?? 600}
+            loading={eager ? 'eager' : 'lazy'}
+            decoding={eager ? 'sync' : 'async'}
+          />
+        ) : (
+          <div class="product-card__image product-card__image--placeholder" aria-hidden="true" />
+        )
+      }
+      {!product.availableForSale && <span class="product-card__flag">Sold out</span>}
+    </div>
+
+    <h3 class="product-card__title">{product.title}</h3>
+
+    <Price
+      class="product-card__price"
+      price={minPrice}
+      maxPrice={maxPrice}
+      compareAtPrice={compareAt}
+    />
+
+    {
+      variantCount > 1 && (
+        <p class="product-card__variants">{variantCount} options</p>
+      )
+    }
+  </a>
+</article>
+
+<style lang="scss">
+  @use '../../styles/variables' as vars;
+
+  .product-card {
+    &__link {
+      display: grid;
+      gap: vars.$spacing-unit;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    &__media {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+    }
+
+    &__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+
+      &--placeholder {
+        display: block;
+      }
+    }
+
+    &__flag {
+      position: absolute;
+      inset-block-start: vars.$spacing-unit;
+      inset-inline-start: vars.$spacing-unit;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      background: var(--color-bg);
+      color: var(--color-text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    &__title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    &__variants {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.8125rem;
+    }
+  }
+</style>

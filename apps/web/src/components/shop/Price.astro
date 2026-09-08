@@ -1,0 +1,57 @@
+---
+import { discountPercent, formatMoney, formatPriceRange, isOnSale } from '../../lib/shopify/money'
+import type { Money } from '../../lib/shopify/models'
+
+interface Props {
+  price: Money
+  /** Set for a range ("$18.00 – $95.00"); collapses automatically when equal to `price`. */
+  maxPrice?: Money | null
+  compareAtPrice?: Money | null
+  class?: string
+}
+
+const { price, maxPrice = null, compareAtPrice = null, class: className } = Astro.props
+
+const display = maxPrice ? formatPriceRange(price, maxPrice) : formatMoney(price)
+const onSale = isOnSale(price, compareAtPrice)
+---
+
+<span class:list={['price', className]}>
+  <span class:list={['price__amount', onSale && 'price__amount--sale']}>{display}</span>
+  {
+    onSale && compareAtPrice && (
+      <>
+        <s class="price__compare">{formatMoney(compareAtPrice)}</s>
+        <span class="price__badge">{discountPercent(price, compareAtPrice)}% off</span>
+      </>
+    )
+  }
+</span>
+
+<style lang="scss">
+  .price {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+
+    &__amount {
+      font-variant-numeric: tabular-nums;
+
+      &--sale {
+        color: var(--color-primary);
+      }
+    }
+
+    &__compare {
+      color: var(--color-text-muted);
+      font-size: 0.875em;
+    }
+
+    &__badge {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-primary);
+    }
+  }
+</style>

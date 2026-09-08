@@ -1,0 +1,290 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { formatMoney } from '../lib/shopify/money'
+import { resolveCart } from '../lib/shopify/cart'
+import { formatWeight, totalGrams } from '../lib/shopify/weight'
+
+/**
+ * The cart without JavaScript.
+ *
+ * The drawer is the primary UI, but it only exists once the island hydrates.
+ * This page is where the endpoints' 303 lands, so an add, a quantity change and
+ * a checkout handoff all still work with scripting off — each control here is a
+ * real form posting to the same endpoints the drawer calls.
+ */
+const cart = await resolveCart(Astro)
+const lines = cart?.lines.nodes ?? []
+// Populated by the endpoints' 303 for both userErrors and warnings.
+const notice = Astro.url.searchParams.get('notice')
+
+// Same normalisation the drawer uses: this catalog stores weights in both
+// OUNCES and POUNDS, so raw values cannot be summed.
+const weightLabel = formatWeight(
+  totalGrams(
+    lines.map((line) => ({
+      weight: line.merchandise.weight,
+      weightUnit: line.merchandise.weightUnit,
+      quantity: line.quantity,
+    })),
+  ),
+)
+---
+
+<Layout title="Your cart" description="Review the items in your cart." noindex>
+  <section class="cart-page">
+    <div class="cart-page__inner">
+      <h1 class="cart-page__title">Your cart</h1>
+
+      {notice && <p class="cart-page__notice" role="status">{notice}</p>}
+
+      {
+        lines.length === 0 ? (
+          <p class="cart-page__empty">
+            Your cart is empty. <a href="/products">Browse the shop</a>.
+          </p>
+        ) : (
+          <>
+            <ul class="cart-page__lines" role="list">
+              {lines.map((line) => (
+                <li class="cart-row">
+                  {line.merchandise.image ? (
+                    <img
+                      class="cart-row__image"
+                      src={line.merchandise.image.url}
+                      alt={line.merchandise.image.altText ?? line.merchandise.product.title}
+                      width="80"
+                      height="80"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="cart-row__image cart-row__image--placeholder" aria-hidden="true" />
+                  )}
+
+                  <div class="cart-row__body">
+                    <a
+                      class="cart-row__title"
+                      href={`/products/${line.merchandise.product.handle}`}
+                    >
+                      {line.merchandise.product.title}
+                    </a>
+
+                    {line.merchandise.selectedOptions.length > 0 && (
+                      <p class="cart-row__options">
+                        {line.merchandise.selectedOptions
+                          .map((option) => option.value)
+                          .join(' / ')}
+                      </p>
+                    )}
+
+                    <div class="cart-row__controls">
+                      {/* Each control is its own form so the page needs no JS.
+                          Quantity 0 is what the remove button submits. */}
+                      <form method="post" action="/api/cart/update" class="cart-row__form">
+                        <input type="hidden" name="lineId" value={line.id} />
+                        <label class="visually-hidden" for={`qty-${line.id}`}>
+                          Quantity for {line.merchandise.product.title}
+                        </label>
+                        <input
+                          id={`qty-${line.id}`}
+                          class="cart-row__qty"
+                          type="number"
+                          name="quantity"
+                          value={line.quantity}
+                          min="0"
+                          max="999"
+                        />
+                        <button class="cart-row__update" type="submit">
+                          Update
+                        </button>
+                      </form>
+
+                      <form method="post" action="/api/cart/update" class="cart-row__form">
+                        <input type="hidden" name="lineId" value={line.id} />
+                        <input type="hidden" name="quantity" value="0" />
+                        <button class="cart-row__remove" type="submit">
+                          Remove
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+
+                  <span class="cart-row__price">{formatMoney(line.cost.totalAmount)}</span>
+                </li>
+              ))}
+            </ul>
+
+            <footer class="cart-page__summary">
+              <div class="cart-page__row">
+                <span>Subtotal</span>
+                <span>{formatMoney(cart!.cost.subtotalAmount)}</span>
+              </div>
+
+              {weightLabel && (
+                <div class="cart-page__row cart-page__row--muted">
+                  <span>Total weight</span>
+                  <span>{weightLabel}</span>
+                </div>
+              )}
+
+              <p class="cart-page__note">Shipping and taxes are calculated at checkout.</p>
+
+              <a class="cart-page__checkout" href={cart!.checkoutUrl} rel="nofollow">
+                Checkout
+              </a>
+            </footer>
+          </>
+        )
+      }
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  @use '../styles/mixins' as mixins;
+  @use '../styles/variables' as vars;
+
+  .visually-hidden {
+    @include mixins.visually-hidden;
+  }
+
+  .cart-page {
+    padding-block: vars.$spacing-unit * 6;
+
+    &__inner {
+      @include mixins.container;
+      max-width: 46rem;
+    }
+
+    &__title {
+      margin: 0 0 vars.$spacing-unit * 3;
+    }
+
+    &__notice {
+      padding: vars.$spacing-unit;
+      margin-block-end: vars.$spacing-unit * 2;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+
+    &__empty {
+      color: var(--color-text-muted);
+    }
+
+    &__lines {
+      display: grid;
+      gap: vars.$spacing-unit * 3;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    &__summary {
+      display: grid;
+      gap: vars.$spacing-unit;
+      margin-block-start: vars.$spacing-unit * 4;
+      padding-block-start: vars.$spacing-unit * 2;
+      border-top: 1px solid var(--color-border);
+    }
+
+    &__row {
+      display: flex;
+      justify-content: space-between;
+      font-variant-numeric: tabular-nums;
+
+      &--muted {
+        color: var(--color-text-muted);
+        font-size: 0.875rem;
+      }
+    }
+
+    &__note {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.8125rem;
+    }
+
+    &__checkout {
+      justify-self: start;
+      padding: 0.875rem 1.75rem;
+      border-radius: 6px;
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+      font-weight: 500;
+      text-decoration: none;
+    }
+  }
+
+  .cart-row {
+    display: grid;
+    grid-template-columns: 5rem 1fr auto;
+    gap: vars.$spacing-unit * 2;
+
+    &__image {
+      width: 5rem;
+      height: 5rem;
+      object-fit: cover;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+
+      &--placeholder {
+        background: var(--color-surface);
+      }
+    }
+
+    &__body {
+      display: grid;
+      gap: 0.25rem;
+      align-content: start;
+    }
+
+    &__title {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    &__options {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+
+    &__controls {
+      display: flex;
+      align-items: center;
+      gap: vars.$spacing-unit * 2;
+      margin-block-start: 0.5rem;
+    }
+
+    &__form {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    &__qty {
+      width: 4rem;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-surface);
+      color: inherit;
+      font: inherit;
+    }
+
+    &__update,
+    &__remove {
+      border: 0;
+      background: transparent;
+      color: var(--color-text-muted);
+      font: inherit;
+      font-size: 0.8125rem;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    &__price {
+      font-variant-numeric: tabular-nums;
+    }
+  }
+</style>

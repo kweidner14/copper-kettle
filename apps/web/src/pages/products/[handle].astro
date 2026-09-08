@@ -114,12 +114,17 @@ const description =
             {inStock && !lowStock && 'In stock'}
           </p>
 
-          {/* No cart yet — the button is inert until the cart endpoints land.
-              The variant is already resolved server-side, so when they do the
-              browser still never has to map options to a variant id. */}
-          <button class="product__add" type="button" disabled>
-            {inStock ? 'Add to cart' : 'Unavailable'}
-          </button>
+          {/* A real form post, not a JS-only button: with no JavaScript this
+              still adds the line and redirects to /cart. src/scripts/cart.ts
+              upgrades it in place and opens the drawer. The variant is resolved
+              server-side, so the browser never maps options to a variant id. */}
+          <form class="product__buy" method="post" action="/api/cart/add" data-cart-add>
+            <input type="hidden" name="variantId" value={selectedVariant?.id ?? ''} />
+            <input type="hidden" name="quantity" value="1" />
+            <button class="product__add" type="submit" disabled={!inStock || !selectedVariant}>
+              {inStock ? 'Add to cart' : 'Unavailable'}
+            </button>
+          </form>
 
           <dl class="product__meta">
             {
@@ -254,6 +259,10 @@ const description =
       &--out {
         color: var(--color-text);
       }
+    }
+
+    &__buy {
+      margin: 0;
     }
 
     &__add {

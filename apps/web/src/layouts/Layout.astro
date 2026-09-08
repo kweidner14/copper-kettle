@@ -1,5 +1,6 @@
 ---
 import Header from '../components/Header.astro'
+import { resolveCart } from '../lib/shopify/cart'
 import Footer from '../components/Footer.astro'
 import '../styles/global.scss'
 
@@ -16,6 +17,10 @@ const { title, description, canonicalUrl, ogImage, noindex = false } = Astro.pro
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? ''
 const canonical = canonicalUrl ?? `${siteUrl}${Astro.url.pathname}`
 const resolvedOgImage = ogImage ?? `${siteUrl}/og-default.png`
+// Resolved here rather than in middleware (see resolveCart). Memoised per
+// request, so a page that also needs the cart does not refetch it.
+const cart = await resolveCart(Astro)
+
 const ga4Id = import.meta.env.PUBLIC_GA4_ID ?? ''
 
 // Swap this for the schema.org type that actually matches the business
@@ -60,7 +65,7 @@ const structuredData = {
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <Header />
+    <Header cart={cart} />
 
     <main id="main-content" class="has-fixed-header">
       <slot />
@@ -73,6 +78,9 @@ const structuredData = {
     </script>
     <script>
       import '../scripts/analytics'
+    </script>
+    <script>
+      import '../scripts/cart'
     </script>
   </body>
 </html>

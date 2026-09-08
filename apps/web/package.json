@@ -2,6 +2,7 @@
   "name": "web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Copper Kettle — headless Shopify storefront on Astro (SSR, Cloudflare Pages).",
   "scripts": {
     "dev": "astro dev",
@@ -15,9 +16,11 @@
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
     "@astrojs/sitemap": "^3.7.4",
+    "@astrojs/svelte": "^9.0.1",
     "astro": "^7.3.1",
     "graphql": "^16.14.1",
-    "sass": "^1.79.0"
+    "sass": "^1.79.0",
+    "svelte": "^5.57.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

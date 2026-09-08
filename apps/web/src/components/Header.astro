@@ -1,4 +1,13 @@
 ---
+import CartDrawer from './shop/CartDrawer.svelte'
+import type { Cart } from '../lib/shopify/cart'
+
+interface Props {
+  cart: Cart | null
+}
+
+const { cart } = Astro.props
+
 const navItems = [
   { href: '/products', label: 'Shop' },
   { href: '/collections', label: 'Collections' },
@@ -25,6 +34,10 @@ const navItems = [
         }
       </ul>
     </nav>
+
+    {/* The one client island. Seeded with whatever the server knew: the real
+        cart on SSR routes, null on prerendered ones. */}
+    <CartDrawer client:load initialCart={cart} />
   </div>
 </header>
 

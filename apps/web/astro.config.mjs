@@ -1,5 +1,6 @@
 import cloudflare from '@astrojs/cloudflare'
 import sitemap from '@astrojs/sitemap'
+import svelte from '@astrojs/svelte'
 import { defineConfig, envField } from 'astro/config'
 
 // Canonical public URL, used for canonical tags / sitemap / OG.
@@ -14,11 +15,37 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare(),
 
-  integrations: [sitemap()],
+  // Svelte is the only client framework in the project, and it exists for one
+  // component: the cart drawer. Everything else — including the variant picker —
+  // is server-rendered links and forms.
+  integrations: [sitemap(), svelte()],
+
+  // Cold-start fix, not a performance tweak.
+  //
+  // @astrojs/cloudflare pre-optimises an explicit allowlist of server deps so
+  // the SSR optimiser never has to discover one mid-flight. Anything it misses
+  // gets found late, which triggers a re-optimise and a "program reload" while
+  // the workerd runner is still holding the old "?v=<hash>" handles — the server
+  // then dies with "The file does not exist at .../deps_ssr/...". A second
+  // "npm run dev" succeeds only because the cache is already warm.
+  //
+  // Two entries are missing from that allowlist:
+  //   - astro/logger/console — the adapter includes astro/logger/json but not
+  //     the console logger, so this only bites in a normal terminal.
+  //   - @astrojs/svelte/server.js — the renderer entry, resolved the first time
+  //     a Svelte island is server-rendered.
+  //
+  // The adapter merges this top-level list into its own. Note that the older
+  // "vite.ssr.optimizeDeps" key is NOT read here; it has to be top level.
+  vite: {
+    optimizeDeps: {
+      include: ['astro/logger/console', '@astrojs/svelte/server.js'],
+    },
+  },
 
   // Typed, validated environment. The Storefront token is declared
   // `context: 'server', access: 'secret'`, which makes importing it from
-  // client-side code a build error rather than a leak.
+  // client-side code a build error rather than a leak — see src/lib/shopify/client.ts.
   env: {
     schema: {
       SHOPIFY_STORE_DOMAIN: envField.string({

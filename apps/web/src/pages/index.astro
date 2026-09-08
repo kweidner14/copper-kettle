@@ -5,10 +5,9 @@ export const prerender = true
 
 import Layout from '../layouts/Layout.astro'
 import RichText from '../components/RichText.astro'
-import { getPage, getPosts } from '../lib/api'
+import { getPage } from '../lib/api'
 
 const page = await getPage('home')
-const recentPosts = (await getPosts()).slice(0, 3)
 
 const title = page?.seo?.metaTitle || page?.title || 'Home'
 const description =
@@ -39,24 +38,6 @@ const description =
     </div>
   </section>
 
-  {
-    recentPosts.length > 0 && (
-      <section class="recent-posts" data-reveal>
-        <div class="recent-posts__inner">
-          <h2 class="recent-posts__title">Latest posts</h2>
-          <ul class="recent-posts__list">
-            {recentPosts.map((post) => (
-              <li class="recent-posts__item">
-                <a class="recent-posts__link" href={`/blog/${post.slug}`}>
-                  {post.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-    )
-  }
 </Layout>
 
 <style lang="scss">
@@ -87,31 +68,4 @@ const description =
     }
   }
 
-  .recent-posts {
-    padding-block: vars.$spacing-unit * 6;
-    border-top: 1px solid var(--color-border);
-
-    &__inner {
-      @include mixins.container;
-    }
-
-    &__list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: vars.$spacing-unit * 2;
-    }
-
-    &__link {
-      text-decoration: none;
-      font-size: 1.125rem;
-
-      &:hover,
-      &:focus-visible {
-        color: var(--color-primary);
-      }
-    }
-  }
 </style>

@@ -1,4 +1,4 @@
-import type { PaginatedDocs, Page, Post } from './types'
+import type { PaginatedDocs, Page } from './types'
 
 // Read at build time (Astro SSG), so this must be the server-reachable URL
 // for Payload, not necessarily the same as the public browser-facing one.
@@ -37,24 +37,6 @@ export async function getPage(slug: string, depth = 1): Promise<Page | null> {
     depth,
     limit: 1,
     where: { slug: { equals: slug } },
-  })
-  return data.docs[0] ?? null
-}
-
-export async function getPosts(depth = 1): Promise<Post[]> {
-  const data = await payloadFetch<PaginatedDocs<Post>>('posts', {
-    depth,
-    limit: 100,
-    where: { _status: { equals: 'published' } },
-  })
-  return data.docs
-}
-
-export async function getPost(slug: string, depth = 1): Promise<Post | null> {
-  const data = await payloadFetch<PaginatedDocs<Post>>('posts', {
-    depth,
-    limit: 1,
-    where: { slug: { equals: slug }, _status: { equals: 'published' } },
   })
   return data.docs[0] ?? null
 }

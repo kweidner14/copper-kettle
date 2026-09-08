@@ -52,25 +52,6 @@ export interface Page {
   seo?: Seo
 }
 
-export interface Category {
-  id: string
-  title: string
-  slug: string
-}
-
-export interface Post {
-  id: string
-  title: string
-  slug: string
-  excerpt?: string
-  publishedAt?: string
-  author?: { id: string; name?: string } | string
-  category?: Category | string
-  featuredImage?: Media | string | null
-  content?: RichTextContent
-  seo?: Seo
-}
-
 export interface PaginatedDocs<T> {
   docs: T[]
   totalDocs: number

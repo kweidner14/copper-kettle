@@ -51,9 +51,10 @@ function resolveInternalLink(fields: NonNullable<LexicalNode['fields']>): string
   switch (doc.relationTo) {
     case 'pages':
       return slug === 'home' ? '/' : `/${slug}`
-    case 'posts':
-      return `/blog/${slug}`
     default:
+      // `pages` is the only collection with a public route. Posts used to map
+      // to /blog/<slug>; that route no longer exists, so an older document
+      // linking to one falls through here rather than pointing at a dead path.
       return `/${slug}`
   }
 }

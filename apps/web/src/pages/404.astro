@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro'
+
+// Left on-demand deliberately. Astro forbids rewriting from an on-demand route
+// into a prerendered one — by build time a prerendered page is a static HTML
+// file, so there is nothing left for the server to invoke. Marking this
+// `prerender = true` turns every `Astro.rewrite('/404')` in the Shopify routes
+// into a 500. It still serves as the fallback for unmatched URLs.
+---
+
+<Layout title="Not found" description="That page does not exist." noindex>
+  <section class="notfound">
+    <div class="notfound__inner">
+      <h1 class="notfound__title">Not found</h1>
+      <p class="notfound__text">
+        That product or page is not available. It may have been unpublished from the store.
+      </p>
+      <p><a href="/products">Back to the shop</a></p>
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  @use '../styles/mixins' as mixins;
+  @use '../styles/variables' as vars;
+
+  .notfound {
+    padding-block: vars.$spacing-unit * 10;
+
+    &__inner {
+      @include mixins.container;
+      max-width: 36rem;
+    }
+
+    &__title {
+      margin: 0 0 vars.$spacing-unit;
+    }
+
+    &__text {
+      color: var(--color-text-muted);
+    }
+  }
+</style>

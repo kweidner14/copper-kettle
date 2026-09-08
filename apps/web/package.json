@@ -2,7 +2,7 @@
   "name": "web",
   "version": "0.1.0",
   "private": true,
-  "description": "Astro static frontend, fetching content from the Payload CMS REST API at build time. Deployed to Cloudflare Pages.",
+  "description": "Copper Kettle — headless Shopify storefront on Astro (SSR, Cloudflare Pages).",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -11,12 +11,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.2.0",
-    "astro": "^4.16.0",
+    "@astrojs/cloudflare": "^14.3.0",
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.1",
     "sass": "^1.79.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.0",
-    "typescript": "^5.5.0"
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^5.5.0",
+    "wrangler": "^4.129.1"
   }
 }

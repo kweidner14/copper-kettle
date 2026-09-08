@@ -1,0 +1,13 @@
+# Local development secrets, loaded into the Workers runtime by wrangler.
+# Copy to `.dev.vars` (gitignored) and fill in. Never commit the real file.
+#
+# Production: set this with `npx wrangler secret put SHOPIFY_STOREFRONT_PRIVATE_TOKEN`
+# or via the Cloudflare dashboard. It is read at runtime through `astro:env/server`,
+# so it is never bundled into client output.
+#
+# Shopify admin -> Sales channels -> Headless -> Storefront API -> private access token.
+SHOPIFY_STOREFRONT_PRIVATE_TOKEN=paste-the-private-access-token-here
+
+# Optional local overrides for the values committed in wrangler.jsonc.
+# SHOPIFY_STORE_DOMAIN=copper-kettle-im1ju9t1.myshopify.com
+# SHOPIFY_STOREFRONT_API_VERSION=2026-04

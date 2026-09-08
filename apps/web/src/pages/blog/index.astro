@@ -1,4 +1,8 @@
 ---
+// Content pages come from Payload at build time, so they stay static even
+// though the project now defaults to SSR for the Shopify-backed routes.
+export const prerender = true
+
 import Layout from '../../layouts/Layout.astro'
 import { getPosts } from '../../lib/api'
 

@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "copper-kettle",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Non-secret config lives here so it is committed and identical across
+  // environments. The Storefront token is a *secret* and must never appear
+  // in this file — see .dev.vars.example.
+  "vars": {
+    "SHOPIFY_STORE_DOMAIN": "copper-kettle-im1ju9t1.myshopify.com",
+    "SHOPIFY_STOREFRONT_API_VERSION": "2026-04"
+  },
+
+  "observability": { "enabled": true }
+}

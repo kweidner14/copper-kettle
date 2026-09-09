@@ -83,10 +83,12 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     height: var(--header-height);
     display: flex;
     align-items: center;
-    // Slightly translucent so the page tints it as content scrolls under,
-    // rather than sitting on the page as an opaque bar.
-    background-color: color-mix(in srgb, var(--paper) 88%, transparent);
-    backdrop-filter: saturate(140%) blur(10px);
+    // Solid, deliberately. A backdrop-filter here becomes the containing block
+    // for every position:fixed descendant, which traps the cart drawer inside
+    // the 76px header instead of letting it span the viewport. The drawer is a
+    // child of this element, so the blur has to go. A solid masthead suits the
+    // paper ground better anyway.
+    background-color: var(--paper);
     border-block-end: 1px solid var(--rule);
     z-index: 100;
 

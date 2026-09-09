@@ -20,24 +20,36 @@ import Layout from '../layouts/Layout.astro'
   </section>
 </Layout>
 
+
 <style lang="scss">
   @use '../styles/mixins' as mixins;
   @use '../styles/variables' as vars;
 
   .notfound {
+    display: grid;
+    place-items: center;
+    min-height: 60vh;
     padding-block: vars.$spacing-unit * 10;
+    text-align: center;
 
     &__inner {
       @include mixins.container;
-      max-width: 36rem;
+      max-width: 34rem;
     }
 
     &__title {
-      margin: 0 0 vars.$spacing-unit;
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit * 2;
     }
 
     &__text {
-      color: var(--color-text-muted);
+      color: var(--ink-soft);
+      margin-block-end: vars.$spacing-unit * 3;
+    }
+
+    a {
+      @include mixins.eyebrow;
+      @include mixins.rule-link(vars.$ink);
     }
   }
 </style>

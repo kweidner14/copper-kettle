@@ -5,21 +5,46 @@ export const prerender = true
 
 import Layout from '../layouts/Layout.astro'
 import ContactForm from '../components/ContactForm.astro'
-import NewsletterForm from '../components/NewsletterForm.astro'
+
+const details = [
+  { term: 'Roastery', value: '114 Mill Street, Fayetteville, AR' },
+  { term: 'Hours', value: 'Tue to Sat, 7am to 2pm' },
+  { term: 'Wholesale', value: 'wholesale@copperkettle.coffee' },
+  { term: 'Press', value: 'hello@copperkettle.coffee' },
+]
 ---
 
-<Layout title="Contact" description="Get in touch.">
-  <section class="contact-page" data-reveal>
-    <div class="contact-page__inner">
-      <h1 class="contact-page__title">Contact</h1>
-      <ContactForm />
-    </div>
-  </section>
+<Layout title="Contact" description="Get in touch with the Copper Kettle roastery.">
+  <section class="contact">
+    <div class="contact__inner">
+      <header class="contact__head">
+        <p class="contact__eyebrow">Say hello</p>
+        <h1 class="contact__title">Talk to the roastery</h1>
+        <p class="contact__lede">
+          Questions about a lot, a wholesale account, or an order already on its way.
+          We answer everything ourselves, usually the same day.
+        </p>
+      </header>
 
-  <section class="contact-page contact-page--newsletter" data-reveal>
-    <div class="contact-page__inner">
-      <h2 class="contact-page__title">Newsletter</h2>
-      <NewsletterForm />
+      <div class="contact__layout">
+        <div class="contact__form">
+          <ContactForm />
+        </div>
+
+        <aside class="contact__aside">
+          <h2 class="contact__aside-title">Find us</h2>
+          <dl class="contact__details">
+            {
+              details.map((row) => (
+                <div class="contact__detail">
+                  <dt>{row.term}</dt>
+                  <dd>{row.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </aside>
+      </div>
     </div>
   </section>
 </Layout>
@@ -28,16 +53,73 @@ import NewsletterForm from '../components/NewsletterForm.astro'
   @use '../styles/mixins' as mixins;
   @use '../styles/variables' as vars;
 
-  .contact-page {
-    padding-block: vars.$spacing-unit * 6;
-
-    &--newsletter {
-      border-top: 1px solid var(--color-border);
-    }
+  .contact {
+    padding-block: vars.$spacing-unit * 7 vars.$spacing-unit * 10;
 
     &__inner {
       @include mixins.container;
-      max-width: 42rem;
+    }
+
+    &__head {
+      max-width: 46rem;
+      margin-block-end: vars.$spacing-unit * 5;
+      padding-block-end: vars.$spacing-unit * 2;
+      border-block-end: 1px solid var(--ink);
+    }
+
+    &__eyebrow {
+      @include mixins.eyebrow;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__title {
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__lede {
+      max-width: vars.$measure;
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 1.0625rem;
+    }
+
+    &__layout {
+      display: grid;
+      gap: vars.$spacing-unit * 6;
+
+      @include mixins.respond-to(lg) {
+        grid-template-columns: 1.3fr 1fr;
+        gap: vars.$spacing-unit * 9;
+        align-items: start;
+      }
+    }
+
+    &__aside-title {
+      @include mixins.eyebrow;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__details {
+      margin: 0;
+      border-block-start: 1px solid var(--rule);
+    }
+
+    &__detail {
+      display: grid;
+      gap: 0.125rem;
+      padding-block: 0.875rem;
+      border-block-end: 1px solid var(--rule);
+
+      dt {
+        @include mixins.eyebrow;
+        font-size: 0.625rem;
+      }
+
+      dd {
+        margin: 0;
+        font-size: 0.9375rem;
+      }
     }
   }
 </style>

@@ -1,43 +1,177 @@
 ---
-// Content pages come from Payload at build time, so they stay static even
-// though the project now defaults to SSR for the Shopify-backed routes.
+// Prerendered. This is a marketing page: it shows the range and its price
+// floor, both of which change on a roasting schedule rather than per request.
+// Deliberately no stock badges here — live availability belongs on the product
+// page, which is SSR, and a static page has no business claiming it.
 export const prerender = true
 
 import Layout from '../layouts/Layout.astro'
+import Price from '../components/shop/Price.astro'
 import RichText from '../components/RichText.astro'
+import { createShopifyApi } from '../lib/shopify/api'
 import { getPage } from '../lib/api'
 
+const shopify = createShopifyApi(Astro)
+const { products } = await shopify.getProducts({ first: 3, sortKey: 'BEST_SELLING' })
+
+const [hero, ...rest] = products
+
+// Optional. The site stands up without Payload; if an editor publishes a page
+// with slug "home", its rich text renders as an extra section rather than
+// replacing the designed page.
 const page = await getPage('home')
 
-const title = page?.seo?.metaTitle || page?.title || 'Home'
+const title = page?.seo?.metaTitle || 'Copper Kettle Coffee Roasters'
 const description =
-  page?.seo?.metaDescription || 'Starter template for an Astro + Payload CMS site.'
+  page?.seo?.metaDescription ||
+  'Small-batch coffee roasted to order in the Ozarks and shipped within a day of the roast.'
+
+const steps = [
+  {
+    title: 'Green, chosen in person',
+    body: 'We buy one or two lots at a time, from importers who will tell us the farm gate price without being asked twice.',
+  },
+  {
+    title: 'Roasted the week it ships',
+    body: 'Nothing sits in a warehouse waiting for an order. The roast date is on the bag because it is the number that matters.',
+  },
+  {
+    title: 'Ground the way you brew',
+    body: 'Whole bean, drip or espresso, chosen on the bag itself. We grind to order rather than stocking nine versions of the same coffee.',
+  },
+]
 ---
 
 <Layout title={title} description={description}>
-  <section class="hero" data-reveal>
+  <!-- Hero: type on paper, packaging in a tall frame. The bag is the subject,
+       so it gets a full column rather than a background wash behind text. -->
+  <section class="hero">
     <div class="hero__inner">
-      <!-- Purely decorative — aria-hidden so screen readers skip it. -->
-      <svg
-        class="hero__accent"
-        aria-hidden="true"
-        focusable="false"
-        viewBox="0 0 48 48"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <circle cx="24" cy="24" r="20" fill="currentColor" />
-      </svg>
-      <h1 class="hero__title">{page?.title ?? 'Welcome'}</h1>
-      {!page && (
-        <p class="hero__hint">
-          No "home" page found in Payload yet — create a Page with slug <code>home</code> to
-          replace this placeholder.
+      <div class="hero__copy">
+        <p class="hero__eyebrow">Ozarks &middot; Small batch</p>
+        <h1 class="hero__title">
+          Coffee worth<br />
+          <em>getting up for</em>
+        </h1>
+        <p class="hero__lede">
+          We roast in batches small enough to taste every one, then ship inside a day.
+          No warehouse, no blend that has been sitting since spring.
         </p>
-      )}
-      {page?.content && <RichText content={page.content} />}
+        <div class="hero__actions">
+          <a class="hero__cta" href="/products">Shop the range</a>
+          <a class="hero__link" href="/about">How we roast</a>
+        </div>
+      </div>
+
+      {
+        hero?.featuredImage && (
+          <figure class="hero__figure">
+            <img
+              class="hero__image"
+              src={hero.featuredImage.url}
+              alt={hero.featuredImage.altText ?? hero.title}
+              width={hero.featuredImage.width ?? 900}
+              height={hero.featuredImage.height ?? 1100}
+              loading="eager"
+              fetchpriority="high"
+            />
+            <figcaption class="hero__caption">
+              <span>{hero.title}</span>
+              <Price
+                price={hero.priceRange.minVariantPrice}
+                maxPrice={hero.priceRange.maxVariantPrice}
+              />
+            </figcaption>
+          </figure>
+        )
+      }
     </div>
   </section>
 
+  <!-- The process, as a numbered index. Three facts with rules between them,
+       which is the print equivalent of the icon-and-heading row a theme uses. -->
+  <section class="process">
+    <div class="process__inner">
+      <h2 class="process__title">Three things we do differently</h2>
+
+      <ol class="process__list" role="list">
+        {
+          steps.map((step, index) => (
+            <li class="process__item">
+              <span class="process__number">{String(index + 1).padStart(2, '0')}</span>
+              <div class="process__body">
+                <h3 class="process__item-title">{step.title}</h3>
+                <p class="process__item-copy">{step.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  {
+    rest.length > 0 && (
+      <section class="featured">
+        <div class="featured__inner">
+          <header class="featured__head">
+            <h2 class="featured__title">Also on the roster</h2>
+            <a class="featured__all" href="/products">
+              All coffee
+            </a>
+          </header>
+
+          <ul class="featured__grid" role="list">
+            {rest.map((product) => (
+              <li>
+                <a class="featured__card" href={`/products/${product.handle}`}>
+                  {product.featuredImage && (
+                    <img
+                      class="featured__image"
+                      src={product.featuredImage.url}
+                      alt={product.featuredImage.altText ?? product.title}
+                      width={product.featuredImage.width ?? 600}
+                      height={product.featuredImage.height ?? 750}
+                      loading="lazy"
+                    />
+                  )}
+                  <span class="featured__name">{product.title}</span>
+                  <Price
+                    price={product.priceRange.minVariantPrice}
+                    maxPrice={product.priceRange.maxVariantPrice}
+                  />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- The one full-bleed roast section in the body. Gives the page a dark beat
+       between the paper sections and sets up the footer. -->
+  <section class="statement">
+    <div class="statement__inner">
+      <blockquote class="statement__quote">
+        <p>
+          Freshness is not a marketing word. It is a date, and it is printed on every
+          bag we send.
+        </p>
+      </blockquote>
+      <p class="statement__attribution">Copper Kettle, since 2019</p>
+    </div>
+  </section>
+
+  {
+    page?.content && (
+      <section class="editorial">
+        <div class="editorial__inner">
+          <RichText content={page.content} />
+        </div>
+      </section>
+    )
+  }
 </Layout>
 
 <style lang="scss">
@@ -45,27 +179,235 @@ const description =
   @use '../styles/mixins' as mixins;
 
   .hero {
+    padding-block: vars.$spacing-unit * 6 vars.$spacing-unit * 10;
+
+    &__inner {
+      @include mixins.container;
+      display: grid;
+      gap: vars.$spacing-unit * 5;
+      align-items: center;
+
+      @include mixins.respond-to(lg) {
+        grid-template-columns: 1fr 0.85fr;
+        gap: vars.$spacing-unit * 8;
+      }
+    }
+
+    &__eyebrow {
+      @include mixins.eyebrow;
+      margin: 0 0 vars.$spacing-unit * 3;
+    }
+
+    &__title {
+      font-size: vars.$step-hero;
+      margin: 0 0 vars.$spacing-unit * 3;
+
+      // The italic second line is the one flourish on the page. Fraunces has a
+      // genuine italic, so it reads as a considered break rather than a slant.
+      em {
+        font-style: italic;
+        color: var(--copper);
+      }
+    }
+
+    &__lede {
+      max-width: vars.$measure;
+      margin: 0 0 vars.$spacing-unit * 4;
+      color: var(--ink-soft);
+      font-size: 1.125rem;
+    }
+
+    &__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: vars.$spacing-unit * 3;
+    }
+
+    &__cta {
+      @include mixins.button-solid;
+    }
+
+    &__link {
+      @include mixins.eyebrow;
+      @include mixins.rule-link(vars.$ink);
+    }
+
+    &__figure {
+      margin: 0;
+      display: grid;
+      gap: vars.$spacing-unit * 1.5;
+    }
+
+    &__image {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      background: var(--paper-sunk);
+    }
+
+    &__caption {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: vars.$spacing-unit;
+      padding-block-start: 0.5rem;
+      border-block-start: 1px solid var(--rule);
+      @include mixins.eyebrow;
+      color: var(--ink);
+    }
+  }
+
+  .process {
     padding-block: vars.$spacing-unit * 8;
+    border-block-start: 1px solid var(--rule);
 
     &__inner {
       @include mixins.container;
     }
 
-    &__accent {
-      width: 2.5rem;
-      height: 2.5rem;
-      color: var(--color-primary);
-      margin-block-end: vars.$spacing-unit * 2;
-    }
-
     &__title {
-      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-size: vars.$step-2;
+      max-width: 20ch;
+      margin: 0 0 vars.$spacing-unit * 5;
     }
 
-    &__hint {
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+    &__list {
+      display: grid;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      @include mixins.respond-to(md) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: vars.$spacing-unit * 4;
+      }
+    }
+
+    &__item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: vars.$spacing-unit * 2;
+      align-items: start;
+      padding-block: vars.$spacing-unit * 3;
+      border-block-start: 1px solid var(--ink);
+
+      @include mixins.respond-to(md) {
+        grid-template-columns: 1fr;
+        gap: vars.$spacing-unit;
+      }
+    }
+
+    &__number {
+      @include mixins.eyebrow;
+      color: var(--copper);
+    }
+
+    &__item-title {
+      font-family: vars.$font-display;
+      font-size: 1.1875rem;
+      font-weight: 500;
+      margin: 0 0 0.375rem;
+    }
+
+    &__item-copy {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.9375rem;
     }
   }
 
+  .featured {
+    padding-block: vars.$spacing-unit * 6 vars.$spacing-unit * 8;
+
+    &__inner {
+      @include mixins.container;
+    }
+
+    &__head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: vars.$spacing-unit * 2;
+      padding-block-end: vars.$spacing-unit;
+      border-block-end: 1px solid var(--ink);
+      margin-block-end: vars.$spacing-unit * 4;
+    }
+
+    &__title {
+      font-size: vars.$step-3;
+      margin: 0;
+    }
+
+    &__all {
+      @include mixins.eyebrow;
+      @include mixins.rule-link(vars.$ink);
+    }
+
+    &__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+      gap: vars.$spacing-unit * 4;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    &__card {
+      display: grid;
+      gap: 0.5rem;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    &__image {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      background: var(--paper-sunk);
+    }
+
+    &__name {
+      font-family: vars.$font-display;
+      font-size: 1.0625rem;
+    }
+  }
+
+  .statement {
+    background: var(--roast);
+    color: var(--cream);
+    padding-block: vars.$spacing-unit * 12;
+
+    &__inner {
+      @include mixins.container;
+      text-align: center;
+    }
+
+    &__quote {
+      margin: 0 auto vars.$spacing-unit * 2;
+      max-width: 26ch;
+
+      p {
+        @include mixins.display-type;
+        font-size: vars.$step-2;
+        margin: 0;
+      }
+    }
+
+    &__attribution {
+      @include mixins.eyebrow;
+      color: var(--cream-soft);
+      margin: 0;
+    }
+  }
+
+  .editorial {
+    padding-block: vars.$spacing-unit * 8;
+
+    &__inner {
+      @include mixins.container;
+      max-width: vars.$measure;
+    }
+  }
 </style>

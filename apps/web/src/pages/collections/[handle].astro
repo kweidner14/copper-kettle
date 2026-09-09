@@ -58,63 +58,58 @@ const description = collection.seo?.description || `${collection.title} from Cop
   </section>
 </Layout>
 
+
 <style lang="scss">
   @use '../../styles/mixins' as mixins;
   @use '../../styles/variables' as vars;
 
   .collection {
-    padding-block: vars.$spacing-unit * 6;
+    padding-block: vars.$spacing-unit * 4 vars.$spacing-unit * 10;
 
     &__inner {
       @include mixins.container;
     }
 
     &__header {
-      margin-block-end: vars.$spacing-unit * 4;
+      max-width: 46rem;
+      margin-block-end: vars.$spacing-unit * 5;
     }
 
     &__breadcrumb {
       display: flex;
-      gap: vars.$spacing-unit;
-      margin-block-end: vars.$spacing-unit * 2;
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+      align-items: center;
+      gap: 0.5rem;
+      margin-block-end: vars.$spacing-unit * 3;
+      @include mixins.eyebrow;
 
       a {
-        color: inherit;
+        @include mixins.rule-link(vars.$ink-faint);
       }
     }
 
     &__title {
-      margin: 0;
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit * 2;
     }
 
     &__description {
-      margin-block-start: vars.$spacing-unit;
-      max-width: 44rem;
-      color: var(--color-text-muted);
-      line-height: 1.7;
+      max-width: vars.$measure;
+      color: var(--ink-soft);
+    }
+
+    &__empty {
+      color: var(--ink-soft);
     }
 
     &__grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: vars.$spacing-unit * 3;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+      gap: vars.$spacing-unit * 5 vars.$spacing-unit * 4;
       margin: 0;
       padding: 0;
       list-style: none;
-
-      @include mixins.respond-to(md) {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      @include mixins.respond-to(lg) {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-    }
-
-    &__empty {
-      color: var(--color-text-muted);
+      padding-block-start: vars.$spacing-unit * 3;
+      border-block-start: 1px solid var(--ink);
     }
   }
 </style>

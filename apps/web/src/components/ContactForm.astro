@@ -55,56 +55,44 @@ const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
   })
 </script>
 
+
 <style lang="scss">
+  @use '../styles/mixins' as mixins;
   @use '../styles/variables' as vars;
 
   .contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: vars.$spacing-unit * 2;
-    max-width: 32rem;
+    display: grid;
+    gap: vars.$spacing-unit * 2.5;
 
     &__field {
-      display: flex;
-      flex-direction: column;
-      gap: vars.$spacing-unit;
+      display: grid;
+      gap: 0.4375rem;
     }
 
     &__label {
-      font-size: 0.875rem;
-      color: var(--color-text-muted);
+      @include mixins.eyebrow;
     }
 
     &__input,
     &__textarea {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      padding: vars.$spacing-unit * 1.5;
-      color: var(--color-text);
-      font: inherit;
+      @include mixins.field;
+    }
+
+    &__textarea {
+      resize: vertical;
+      min-height: 8rem;
     }
 
     &__submit {
-      align-self: flex-start;
-      background: var(--color-primary);
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      padding: vars.$spacing-unit * 1.5 vars.$spacing-unit * 3;
-      font: inherit;
-      cursor: pointer;
-
-      &:hover,
-      &:focus-visible {
-        opacity: 0.9;
-      }
+      @include mixins.button-solid;
+      justify-self: start;
     }
 
     &__status {
       min-height: 1.25em;
+      margin: 0;
       font-size: 0.875rem;
-      color: var(--color-text-muted);
+      color: var(--ink-faint);
     }
   }
 </style>

@@ -28,21 +28,44 @@ const description = page?.seo?.metaDescription || 'Our privacy policy.'
   </section>
 </Layout>
 
+
 <style lang="scss">
   @use '../styles/mixins' as mixins;
   @use '../styles/variables' as vars;
 
+  // Shared shape for the three Payload-backed content pages: a wide masthead
+  // rule, then a single measure-width column. Long-form reading, not layout.
   .page-content {
-    padding-block: vars.$spacing-unit * 6;
+    padding-block: vars.$spacing-unit * 7 vars.$spacing-unit * 10;
 
     &__inner {
       @include mixins.container;
-      max-width: 42rem;
+      max-width: 46rem;
+    }
+
+    &__title {
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit * 4;
+      padding-block-end: vars.$spacing-unit * 2;
+      border-block-end: 1px solid var(--ink);
     }
 
     &__hint {
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+      color: var(--ink-faint);
+      font-size: 0.9375rem;
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.875em;
+        background: var(--paper-sunk);
+        padding: 0.1em 0.35em;
+      }
+    }
+
+    &__body {
+      max-width: vars.$measure;
+      color: var(--ink-soft);
+      font-size: 1.0625rem;
     }
   }
 </style>

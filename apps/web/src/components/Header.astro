@@ -56,9 +56,14 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       </ul>
     </nav>
 
-    {/* The one client island. Seeded with whatever the server knew: the real
-        cart on SSR routes, null on prerendered ones. */}
-    <CartDrawer client:load initialCart={cart} />
+    {/* Wrapped so the header grid can place it: the trigger belongs to the
+        Svelte island, and this component's scoped styles cannot reach it.
+        The drawer and overlay are position:fixed, so nesting costs nothing. */}
+    <div class="site-header__cart">
+      {/* The one client island. Seeded with whatever the server knew: the real
+          cart on SSR routes, null on prerendered ones. */}
+      <CartDrawer client:load initialCart={cart} />
+    </div>
   </div>
 </header>
 
@@ -70,6 +75,11 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     position: fixed;
     inset-block-start: 0;
     inset-inline: 0;
+    // Below md the nav drops to a second row rather than disappearing behind a
+    // hamburger. Four short links fit a phone width comfortably, and a menu
+    // button would need script for something that does not need script.
+    // The height itself is --header-height from :root, which `.has-fixed-header`
+    // also pads by, so the two can never drift apart.
     height: var(--header-height);
     display: flex;
     align-items: center;
@@ -83,18 +93,30 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     &__inner {
       @include mixins.container;
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      // Mobile: logo and cart on row one, nav spanning row two.
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        'logo cart'
+        'nav nav';
       align-items: center;
-      gap: vars.$spacing-unit * 2;
+      gap: vars.$spacing-unit * 1.5 vars.$spacing-unit * 2;
       width: 100%;
+
+      @include mixins.respond-to(md) {
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas: 'logo nav cart';
+        gap: vars.$spacing-unit * 2;
+      }
     }
 
     &__logo {
+      grid-area: logo;
       display: inline-flex;
       align-items: center;
       gap: 0.625rem;
       text-decoration: none;
       color: var(--ink);
+      justify-self: start;
     }
 
     &__logo-mark {
@@ -128,20 +150,34 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     }
 
     &__nav {
-      display: none;
+      grid-area: nav;
+      padding-block-start: vars.$spacing-unit * 1.5;
+      border-block-start: 1px solid var(--rule);
 
       @include mixins.respond-to(md) {
-        display: block;
         justify-self: center;
+        padding-block-start: 0;
+        border-block-start: 0;
       }
     }
 
     &__nav-list {
       display: flex;
+      justify-content: space-between;
       list-style: none;
       margin: 0;
       padding: 0;
-      gap: vars.$spacing-unit * 4;
+      gap: vars.$spacing-unit * 2;
+
+      @include mixins.respond-to(md) {
+        justify-content: flex-start;
+        gap: vars.$spacing-unit * 4;
+      }
+    }
+
+    &__cart {
+      grid-area: cart;
+      justify-self: end;
     }
 
     &__nav-link {

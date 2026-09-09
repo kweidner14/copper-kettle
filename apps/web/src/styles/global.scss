@@ -2,7 +2,11 @@
 @use 'mixins' as mixins;
 
 :root {
-  --header-height: #{vars.$header-height};
+  // Below md the header carries a second row for the nav, so it is taller.
+  // This has to live on :root, not on .site-header: `.has-fixed-header` pads
+  // `main` by the same variable, and a value scoped to the header would leave
+  // the first 40px of every mobile page underneath it.
+  --header-height: 116px;
 
   --paper: #{vars.$paper};
   --paper-raised: #{vars.$paper-raised};
@@ -34,6 +38,10 @@
   --color-text-muted: #{vars.$ink-soft};
   --color-primary: #{vars.$copper};
   --color-border: #{vars.$rule};
+
+  @include mixins.respond-to(md) {
+    --header-height: #{vars.$header-height};
+  }
 }
 
 *,

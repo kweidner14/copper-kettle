@@ -14,17 +14,40 @@ const navItems = [
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ]
+
+// Marks the section the visitor is in, including nested routes like
+// /products/<handle>, so the header always says where you are.
+const path = Astro.url.pathname
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 ---
 
 <header class="site-header">
   <div class="site-header__inner">
-    <a href="/" class="site-header__logo">Copper Kettle</a>
+    <a href="/" class="site-header__logo">
+      <span class="site-header__logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25">
+          <path d="M4 10h11v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-5Z" stroke-linejoin="round"></path>
+          <path d="M15 11.5h1.5a2.5 2.5 0 0 1 0 5H15" stroke-linecap="round"></path>
+          <path d="M7.5 6.5c0-1 1-1.5 1-2.5M11.5 6.5c0-1 1-1.5 1-2.5" stroke-linecap="round"
+          ></path>
+        </svg>
+      </span>
+      <span class="site-header__logo-text">
+        Copper Kettle
+        <span class="site-header__logo-sub">Coffee Roasters</span>
+      </span>
+    </a>
+
     <nav class="site-header__nav" aria-label="Primary">
       <ul class="site-header__nav-list">
         {
           navItems.map((item) => (
-            <li class="site-header__nav-item">
-              <a href={item.href} class="site-header__nav-link">
+            <li>
+              <a
+                href={item.href}
+                class:list={['site-header__nav-link', isCurrent(item.href) && 'is-current']}
+                aria-current={isCurrent(item.href) ? 'page' : undefined}
+              >
                 {item.label}
               </a>
             </li>
@@ -50,44 +73,96 @@ const navItems = [
     height: var(--header-height);
     display: flex;
     align-items: center;
-    background-color: var(--color-bg);
-    border-bottom: 1px solid var(--color-border);
+    // Slightly translucent so the page tints it as content scrolls under,
+    // rather than sitting on the page as an opaque bar.
+    background-color: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-block-end: 1px solid var(--rule);
     z-index: 100;
 
     &__inner {
       @include mixins.container;
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
-      justify-content: space-between;
+      gap: vars.$spacing-unit * 2;
       width: 100%;
     }
 
     &__logo {
-      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
       text-decoration: none;
-      font-size: 1.125rem;
+      color: var(--ink);
+    }
+
+    &__logo-mark {
+      display: grid;
+      place-items: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      color: var(--copper);
+
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    &__logo-text {
+      display: flex;
+      flex-direction: column;
+      font-family: vars.$font-display;
+      font-size: 1.0625rem;
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -0.015em;
+    }
+
+    &__logo-sub {
+      @include mixins.eyebrow;
+      font-size: 0.5rem;
+      letter-spacing: 0.22em;
+      margin-block-start: 2px;
+    }
+
+    &__nav {
+      display: none;
+
+      @include mixins.respond-to(md) {
+        display: block;
+        justify-self: center;
+      }
     }
 
     &__nav-list {
       display: flex;
-      flex-wrap: wrap;
       list-style: none;
       margin: 0;
       padding: 0;
-      gap: vars.$spacing-unit;
-
-      @include mixins.respond-to(md) {
-        gap: vars.$spacing-unit * 3;
-      }
+      gap: vars.$spacing-unit * 4;
     }
 
     &__nav-link {
-      text-decoration: none;
-      color: var(--color-text-muted);
+      @include mixins.eyebrow;
+      @include mixins.rule-link(vars.$ink-soft);
+      font-size: 0.6875rem;
+      padding-block: 0.5rem;
 
       &:hover,
       &:focus-visible {
-        color: var(--color-text);
+        color: var(--ink);
+      }
+
+      // The current section keeps its rule drawn.
+      &.is-current {
+        color: var(--ink);
+
+        &::after {
+          transform: scaleX(1);
+          background: var(--copper);
+        }
       }
     }
   }

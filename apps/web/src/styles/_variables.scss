@@ -1,4 +1,19 @@
-// Breakpoints — mobile-first, used by the respond-to() mixin below.
+// Design tokens — Copper Kettle
+//
+// The visual brief is a specialty roaster's own site, not a storefront theme.
+// Two things drive the choices below:
+//
+//   1. The product photography is dark, warm and high-contrast. Setting it on
+//      bone paper rather than a dark UI lets the imagery carry the weight
+//      instead of competing with the chrome.
+//   2. Nothing here is rounded, gradient-filled or drop-shadowed. Premium print
+//      work gets its structure from rules, spacing and type — so does this.
+//
+// Accent discipline: copper appears on links, underlines and small marks. It is
+// never a button fill. Primary actions are espresso-black on paper, which reads
+// as considered rather than as a call-to-action colour picked from a palette.
+
+// ---------------------------------------------------------------- breakpoints
 $breakpoints: (
   sm: 480px,
   md: 768px,
@@ -6,26 +21,61 @@ $breakpoints: (
   xl: 1280px,
 );
 
-// Fixed header height, exposed as a CSS custom property in global.scss so
-// pages can pad/scroll-margin around a `position: fixed` header without
-// duplicating the number everywhere.
-$header-height: 72px;
+$header-height: 76px;
 
-$color-bg: #0b0b0d;
-$color-surface: #16161a;
-$color-text: #f4f4f5;
-$color-text-muted: #a1a1aa;
-$color-primary: #7c3aed;
-$color-primary-contrast: #ffffff;
-$color-border: #27272a;
+// --------------------------------------------------------------------- colour
+// Warm neutrals. Every grey is pulled toward the roast, so nothing reads blue.
+$paper: #f2eee5; // page ground, warm bone
+$paper-raised: #f8f5ee; // cards, drawer, inputs
+$paper-sunk: #e9e3d6; // wells, image placeholders
 
-$font-family-base:
-  'Inter',
-  -apple-system,
-  BlinkMacSystemFont,
-  'Segoe UI',
-  sans-serif;
-$font-family-heading: $font-family-base;
+$ink: #191410; // espresso, near-black but warm
+$ink-soft: #554c43; // secondary copy
+$ink-faint: #8a8076; // meta, captions, disabled
 
-$container-max-width: 1200px;
+$rule: #ddd4c4; // hairlines
+$rule-strong: #c7bcaa; // hairlines that need to assert
+
+$copper: #9a5b2d; // the one accent
+$copper-deep: #7b4622; // hover / active
+
+$roast: #17120e; // dark sections and the footer
+$roast-raised: #221b15;
+$cream: #ece4d6; // type on roast
+$cream-soft: #a89e91; // secondary type on roast
+
+$positive: #3f6212; // in stock
+$critical: #8a2c14; // sold out, errors
+
+// Legacy aliases. The components were written against these names, and keeping
+// them pointed at the new palette means the redesign can land component by
+// component without a broken intermediate state.
+$color-bg: $paper;
+$color-surface: $paper-raised;
+$color-text: $ink;
+$color-text-muted: $ink-soft;
+$color-primary: $copper;
+$color-primary-contrast: $paper;
+$color-border: $rule;
+
+// ----------------------------------------------------------------- typography
+// Fraunces carries the brand: it has a real optical-size axis and enough warmth
+// to read as craft rather than as a default serif. Archivo does the working
+// text, where a neutral grotesque stays out of the way.
+$font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+$font-body: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+
+$font-family-base: $font-body;
+$font-family-heading: $font-display;
+
+// Fluid display sizes. clamp() rather than breakpoint steps so headlines track
+// the viewport continuously instead of jumping.
+$step-hero: clamp(2.75rem, 7vw, 5.5rem);
+$step-1: clamp(2rem, 4.2vw, 3.25rem);
+$step-2: clamp(1.5rem, 2.6vw, 2.125rem);
+$step-3: clamp(1.25rem, 1.8vw, 1.5rem);
+
+// ---------------------------------------------------------------- proportions
+$container-max-width: 1320px;
+$measure: 34rem; // comfortable reading width
 $spacing-unit: 8px;

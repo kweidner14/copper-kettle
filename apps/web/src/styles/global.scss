@@ -3,12 +3,37 @@
 
 :root {
   --header-height: #{vars.$header-height};
-  --color-bg: #{vars.$color-bg};
-  --color-surface: #{vars.$color-surface};
-  --color-text: #{vars.$color-text};
-  --color-text-muted: #{vars.$color-text-muted};
-  --color-primary: #{vars.$color-primary};
-  --color-border: #{vars.$color-border};
+
+  --paper: #{vars.$paper};
+  --paper-raised: #{vars.$paper-raised};
+  --paper-sunk: #{vars.$paper-sunk};
+
+  --ink: #{vars.$ink};
+  --ink-soft: #{vars.$ink-soft};
+  --ink-faint: #{vars.$ink-faint};
+
+  --rule: #{vars.$rule};
+  --rule-strong: #{vars.$rule-strong};
+
+  --copper: #{vars.$copper};
+  --copper-deep: #{vars.$copper-deep};
+
+  --roast: #{vars.$roast};
+  --roast-raised: #{vars.$roast-raised};
+  --cream: #{vars.$cream};
+  --cream-soft: #{vars.$cream-soft};
+
+  --positive: #{vars.$positive};
+  --critical: #{vars.$critical};
+
+  // Legacy aliases, kept so components still referencing the old names render
+  // in the new palette rather than falling back to nothing.
+  --color-bg: #{vars.$paper};
+  --color-surface: #{vars.$paper-raised};
+  --color-text: #{vars.$ink};
+  --color-text-muted: #{vars.$ink-soft};
+  --color-primary: #{vars.$copper};
+  --color-border: #{vars.$rule};
 }
 
 *,
@@ -19,6 +44,9 @@
 
 html {
   scroll-behavior: smooth;
+  // Fraunces and Archivo both benefit; stops the paper ground looking chalky.
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -38,25 +66,43 @@ html {
 
 body {
   margin: 0;
-  font-family: vars.$font-family-base;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.5;
+  font-family: vars.$font-body;
+  font-size: 1rem;
+  font-weight: 400;
+  background-color: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  // The paper needs a little tooth or it reads as flat #fff-adjacent grey. A
+  // single repeating gradient is cheap and survives any viewport size.
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgb(25 20 16 / 3.5%) 1px,
+    transparent 0
+  );
+  background-size: 4px 4px;
 }
 
 h1,
 h2,
 h3,
-h4,
+h4 {
+  @include mixins.display-type;
+  margin-block: 0 0.4em;
+}
+
 h5,
 h6 {
-  font-family: vars.$font-family-heading;
-  line-height: 1.2;
-  margin-block: 0 0.5em;
+  @include mixins.eyebrow;
+  margin-block: 0 0.75em;
+}
+
+p {
+  margin-block: 0 1em;
 }
 
 img,
-svg {
+svg,
+video {
   max-width: 100%;
   display: block;
 }
@@ -65,12 +111,26 @@ a {
   color: inherit;
 }
 
-// Utility: visually hide content while keeping it available to screen readers.
-.sr-only {
+::selection {
+  background: var(--copper);
+  color: var(--paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 3px;
+}
+
+// Prices, weights and quantities line up in columns everywhere they appear.
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only,
+.visually-hidden {
   @include mixins.visually-hidden;
 }
 
-// Skip link: visually hidden until focused, then jumps above the fixed header.
 .skip-link {
   @include mixins.visually-hidden;
 
@@ -82,25 +142,23 @@ a {
     height: auto;
     padding: 0.75em 1.25em;
     clip: auto;
-    background: var(--color-primary);
-    color: #fff;
-    border-radius: 4px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 0;
     z-index: 1000;
   }
 }
 
-// Room for a fixed header — pages that render <Header /> should add this
-// class to their top-level wrapper (or set scroll-margin-top on anchors).
 .has-fixed-header {
   padding-top: var(--header-height);
 }
 
 [data-reveal] {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(14px);
   transition:
-    opacity 0.6s ease,
-    transform 0.6s ease;
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 
   &.is-revealed {
     opacity: 1;

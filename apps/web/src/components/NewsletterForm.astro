@@ -1,9 +1,22 @@
 ---
 const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
+
+interface Props {
+  /** This form appears on paper (contact) and on the roast footer, so the
+      palette is passed in rather than assumed. */
+  tone?: 'light' | 'dark'
+}
+
+const { tone = 'light' } = Astro.props
 ---
 
-<form class="newsletter-form" id="newsletter-form" data-endpoint={`${apiUrl}/api/newsletter`}>
-  <label class="newsletter-form__label" for="newsletter-email">Email</label>
+<form
+  class:list={['newsletter-form', `newsletter-form--${tone}`]}
+  id="newsletter-form"
+  data-endpoint={`${apiUrl}/api/newsletter`}
+>
+  <label class="newsletter-form__label" for="newsletter-email">Email address</label>
+
   <div class="newsletter-form__row">
     <input
       class="newsletter-form__input"
@@ -11,16 +24,25 @@ const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
       name="email"
       type="email"
       placeholder="you@example.com"
+      autocomplete="email"
       required
     />
-    <button class="newsletter-form__submit" type="submit">Subscribe</button>
+    <button class="newsletter-form__submit" type="submit">
+      <span class="newsletter-form__submit-text">Join</span>
+      <svg
+        class="newsletter-form__arrow"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        aria-hidden="true"
+      >
+        <path d="M2 8h11M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </button>
   </div>
-  <p
-    class="newsletter-form__status"
-    id="newsletter-form-status"
-    role="status"
-    aria-live="polite"
-  >
+
+  <p class="newsletter-form__status" id="newsletter-form-status" role="status" aria-live="polite">
   </p>
 </form>
 
@@ -47,7 +69,7 @@ const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
 
       if (!res.ok) throw new Error('Request failed')
 
-      status.textContent = "You're subscribed."
+      status.textContent = "You're on the list."
       form.reset()
     } catch {
       status.textContent = 'Something went wrong. Please try again.'
@@ -57,53 +79,94 @@ const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
 
 <style lang="scss">
   @use '../styles/variables' as vars;
+  @use '../styles/mixins' as mixins;
 
+  // An underlined field rather than a boxed one: on both grounds it reads as a
+  // line on a page instead of a widget dropped onto it.
   .newsletter-form {
     display: flex;
     flex-direction: column;
     gap: vars.$spacing-unit;
     max-width: 24rem;
 
+    &--light {
+      --nf-line: #{vars.$rule-strong};
+      --nf-line-active: #{vars.$ink};
+      --nf-text: #{vars.$ink};
+      --nf-muted: #{vars.$ink-faint};
+    }
+
+    &--dark {
+      --nf-line: rgb(236 228 214 / 28%);
+      --nf-line-active: #{vars.$cream};
+      --nf-text: #{vars.$cream};
+      --nf-muted: #{vars.$cream-soft};
+    }
+
     &__label {
-      font-size: 0.875rem;
-      color: var(--color-text-muted);
+      @include mixins.visually-hidden;
     }
 
     &__row {
       display: flex;
+      align-items: center;
       gap: vars.$spacing-unit;
+      border-block-end: 1px solid var(--nf-line);
+      transition: border-color 0.25s ease;
+
+      &:focus-within {
+        border-color: var(--nf-line-active);
+      }
     }
 
     &__input {
       flex: 1;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      padding: vars.$spacing-unit * 1.5;
-      color: var(--color-text);
-      font: inherit;
+      min-width: 0;
+      padding: 0.625rem 0;
+      border: 0;
+      background: transparent;
+      color: var(--nf-text);
+      font-family: vars.$font-body;
+      font-size: 0.9375rem;
+
+      &::placeholder {
+        color: var(--nf-muted);
+      }
+
+      &:focus-visible {
+        outline: none;
+      }
     }
 
     &__submit {
-      background: var(--color-primary);
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      padding: vars.$spacing-unit * 1.5 vars.$spacing-unit * 2;
-      font: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.5rem 0;
+      border: 0;
+      background: transparent;
+      color: var(--nf-text);
       cursor: pointer;
-      white-space: nowrap;
+      @include mixins.eyebrow;
+      color: var(--nf-text);
 
-      &:hover,
-      &:focus-visible {
-        opacity: 0.9;
+      &:hover .newsletter-form__arrow,
+      &:focus-visible .newsletter-form__arrow {
+        transform: translateX(3px);
       }
+    }
+
+    &__arrow {
+      width: 1rem;
+      height: 1rem;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     &__status {
       min-height: 1.25em;
-      font-size: 0.875rem;
-      color: var(--color-text-muted);
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--nf-muted);
     }
   }
 </style>

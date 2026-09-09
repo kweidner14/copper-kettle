@@ -1,21 +1,45 @@
 ---
+import NewsletterForm from './NewsletterForm.astro'
+
 const year = new Date().getFullYear()
+
+const columns = [
+  {
+    title: 'Shop',
+    links: [
+      { href: '/products', label: 'All coffee' },
+      { href: '/collections', label: 'Collections' },
+      { href: '/cart', label: 'Your cart' },
+    ],
+  },
+  {
+    title: 'Roastery',
+    links: [
+      { href: '/about', label: 'Our story' },
+      { href: '/contact', label: 'Contact' },
+    ],
+  },
+]
 
 const socialLinks = [
   { href: 'https://instagram.com', label: 'Instagram' },
-  { href: 'https://twitter.com', label: 'Twitter / X' },
+  { href: 'https://twitter.com', label: 'Twitter' },
 ]
 ---
 
 <footer class="site-footer">
   <div class="site-footer__inner">
-    <p class="site-footer__copyright">&copy; {year} Starter. All rights reserved.</p>
+    <div class="site-footer__brand">
+      <p class="site-footer__wordmark">Copper Kettle</p>
+      <p class="site-footer__blurb">
+        Small-batch coffee roasted to order in the Ozarks. Every bag ships within a day of
+        the roast, because freshness is the whole argument.
+      </p>
 
-    <nav class="site-footer__social" aria-label="Social media">
-      <ul class="site-footer__social-list">
+      <ul class="site-footer__social" role="list">
         {
           socialLinks.map((link) => (
-            <li class="site-footer__social-item">
+            <li>
               <a href={link.href} class="site-footer__social-link" rel="noopener noreferrer">
                 {link.label}
               </a>
@@ -23,11 +47,42 @@ const socialLinks = [
           ))
         }
       </ul>
+    </div>
+
+    <nav class="site-footer__nav" aria-label="Footer">
+      {
+        columns.map((column) => (
+          <div class="site-footer__column">
+            <h2 class="site-footer__column-title">{column.title}</h2>
+            <ul class="site-footer__list" role="list">
+              {column.links.map((link) => (
+                <li>
+                  <a href={link.href} class="site-footer__link">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
     </nav>
 
-    <nav class="site-footer__legal" aria-label="Legal">
-      <a href="/privacy-policy" class="site-footer__legal-link">Privacy Policy</a>
-    </nav>
+    <div class="site-footer__signup">
+      <h2 class="site-footer__column-title">Roast notes</h2>
+      <p class="site-footer__signup-copy">
+        What came off the roaster this week, plus the occasional brew guide. No more than
+        twice a month.
+      </p>
+      <NewsletterForm tone="dark" />
+    </div>
+  </div>
+
+  <div class="site-footer__base">
+    <div class="site-footer__base-inner">
+      <p class="site-footer__legal">&copy; {year} Copper Kettle Coffee Roasters</p>
+      <a href="/privacy-policy" class="site-footer__legal-link">Privacy policy</a>
+    </div>
   </div>
 </footer>
 
@@ -35,47 +90,115 @@ const socialLinks = [
   @use '../styles/variables' as vars;
   @use '../styles/mixins' as mixins;
 
+  // The footer is the one place the roast tone takes over a full section. It
+  // closes the page the way the dark packaging closes the product shots.
   .site-footer {
-    border-top: 1px solid var(--color-border);
-    padding-block: vars.$spacing-unit * 4;
+    margin-block-start: vars.$spacing-unit * 12;
+    background: var(--roast);
+    color: var(--cream);
 
     &__inner {
       @include mixins.container;
-      display: flex;
-      flex-direction: column;
-      gap: vars.$spacing-unit * 2;
+      display: grid;
+      gap: vars.$spacing-unit * 6;
+      padding-block: vars.$spacing-unit * 9;
 
       @include mixins.respond-to(md) {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+        grid-template-columns: 1.4fr 1fr;
+        gap: vars.$spacing-unit * 8;
+      }
+
+      @include mixins.respond-to(lg) {
+        grid-template-columns: 1.5fr 1fr 1.2fr;
       }
     }
 
-    &__copyright {
-      margin: 0;
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+    &__wordmark {
+      @include mixins.display-type;
+      font-size: 1.75rem;
+      margin: 0 0 0.5rem;
     }
 
-    &__social-list {
+    &__blurb {
+      max-width: 32ch;
+      margin: 0 0 vars.$spacing-unit * 3;
+      color: var(--cream-soft);
+      font-size: 0.9375rem;
+    }
+
+    &__social {
       display: flex;
+      gap: vars.$spacing-unit * 3;
       list-style: none;
       margin: 0;
       padding: 0;
-      gap: vars.$spacing-unit * 2;
     }
 
-    &__social-link,
-    &__legal-link {
-      text-decoration: none;
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+    &__social-link {
+      @include mixins.eyebrow;
+      @include mixins.rule-link(vars.$cream-soft);
 
       &:hover,
       &:focus-visible {
-        color: var(--color-text);
+        color: var(--cream);
       }
+    }
+
+    &__nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: vars.$spacing-unit * 4;
+    }
+
+    &__column-title {
+      @include mixins.eyebrow;
+      color: var(--cream-soft);
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__list {
+      display: grid;
+      gap: 0.625rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    &__link {
+      @include mixins.rule-link(vars.$cream);
+      font-size: 0.9375rem;
+    }
+
+    &__signup-copy {
+      max-width: 34ch;
+      margin: 0 0 vars.$spacing-unit * 2;
+      color: var(--cream-soft);
+      font-size: 0.875rem;
+    }
+
+    &__base {
+      border-block-start: 1px solid rgb(236 228 214 / 12%);
+    }
+
+    &__base-inner {
+      @include mixins.container;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: vars.$spacing-unit * 2;
+      padding-block: vars.$spacing-unit * 3;
+    }
+
+    &__legal {
+      margin: 0;
+      color: var(--cream-soft);
+      font-size: 0.8125rem;
+    }
+
+    &__legal-link {
+      @include mixins.rule-link(vars.$cream-soft);
+      font-size: 0.8125rem;
     }
   }
 </style>

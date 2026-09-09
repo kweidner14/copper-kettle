@@ -245,6 +245,7 @@
   </div>
 {/if}
 
+
 <style lang="scss">
   @use '../../styles/mixins' as mixins;
   @use '../../styles/variables' as vars;
@@ -253,41 +254,49 @@
     @include mixins.visually-hidden;
   }
 
+  // Reads as a word with a count, not an icon with a bubble. Keeps the header
+  // typographic all the way across.
   .cart-trigger {
     display: inline-flex;
-    align-items: center;
+    align-items: baseline;
     gap: 0.4rem;
-    padding: 0.35rem 0.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 0;
     background: transparent;
-    color: var(--color-text-muted);
-    font: inherit;
+    color: var(--ink);
     cursor: pointer;
+    @include mixins.eyebrow;
+    color: var(--ink);
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease;
 
     &:hover,
     &:focus-visible {
-      color: var(--color-text);
+      border-color: var(--ink);
+      background: var(--ink);
+      color: var(--paper);
     }
 
     &__count {
-      display: inline-grid;
-      place-items: center;
-      min-width: 1.25rem;
-      height: 1.25rem;
-      padding-inline: 0.25rem;
-      border-radius: 999px;
-      background: var(--color-primary);
-      color: var(--color-primary-contrast);
-      font-size: 0.75rem;
       font-variant-numeric: tabular-nums;
+      color: var(--copper);
+      transition: color 0.2s ease;
+    }
+
+    &:hover &__count,
+    &:focus-visible &__count {
+      color: var(--paper);
     }
   }
 
   .cart-overlay {
     position: fixed;
     inset: 0;
-    background: rgb(0 0 0 / 60%);
+    background: rgb(23 18 14 / 45%);
+    backdrop-filter: blur(2px);
     z-index: 200;
   }
 
@@ -298,80 +307,84 @@
     z-index: 201;
     display: flex;
     flex-direction: column;
-    width: min(26rem, 100vw);
-    background: var(--color-bg);
-    border-inline-start: 1px solid var(--color-border);
+    width: min(27rem, 100vw);
+    background: var(--paper-raised);
+    border-inline-start: 1px solid var(--rule-strong);
 
     &__header {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
-      padding: vars.$spacing-unit * 2;
-      border-bottom: 1px solid var(--color-border);
+      gap: vars.$spacing-unit;
+      padding: vars.$spacing-unit * 3;
+      border-block-end: 1px solid var(--rule);
     }
 
     &__title {
       margin: 0;
-      font-size: 1.125rem;
+      font-family: vars.$font-display;
+      font-size: 1.375rem;
+      font-weight: 500;
     }
 
     &__close {
       border: 0;
       background: transparent;
-      color: var(--color-text-muted);
+      color: var(--ink-faint);
       font-size: 1.5rem;
       line-height: 1;
       cursor: pointer;
+      transition: color 0.2s ease;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--ink);
+      }
     }
 
     &__notice {
-      margin: vars.$spacing-unit * 2;
-      padding: vars.$spacing-unit;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
-      color: var(--color-text);
+      margin: vars.$spacing-unit * 3 vars.$spacing-unit * 3 0;
+      padding: 0.75rem 0.875rem;
+      border-inline-start: 2px solid var(--copper);
+      background: var(--paper-sunk);
+      color: var(--ink);
       font-size: 0.875rem;
     }
 
     &__empty {
-      padding: vars.$spacing-unit * 3;
-      color: var(--color-text-muted);
+      padding: vars.$spacing-unit * 4 vars.$spacing-unit * 3;
+      margin: 0;
+      color: var(--ink-soft);
     }
 
     &__footer {
       margin-block-start: auto;
-      padding: vars.$spacing-unit * 2;
-      border-top: 1px solid var(--color-border);
+      padding: vars.$spacing-unit * 3;
+      border-block-start: 1px solid var(--rule);
       display: grid;
-      gap: vars.$spacing-unit;
+      gap: 0.625rem;
     }
 
     &__row {
       display: flex;
       justify-content: space-between;
       font-variant-numeric: tabular-nums;
+      font-size: 0.9375rem;
 
       &--muted {
-        color: var(--color-text-muted);
-        font-size: 0.875rem;
+        @include mixins.eyebrow;
       }
     }
 
     &__note {
-      margin: 0;
-      color: var(--color-text-muted);
+      margin: 0.25rem 0 0.5rem;
+      color: var(--ink-faint);
       font-size: 0.8125rem;
     }
 
     &__checkout {
-      display: block;
-      padding: 0.875rem 1.25rem;
-      border-radius: 6px;
-      background: var(--color-primary);
-      color: var(--color-primary-contrast);
-      font-weight: 500;
-      text-align: center;
-      text-decoration: none;
+      @include mixins.button-solid;
+      width: 100%;
     }
   }
 
@@ -379,27 +392,33 @@
     flex: 1;
     overflow-y: auto;
     margin: 0;
-    padding: vars.$spacing-unit * 2;
+    padding: vars.$spacing-unit * 3;
     list-style: none;
     display: grid;
-    gap: vars.$spacing-unit * 2;
+    gap: vars.$spacing-unit * 3;
     align-content: start;
   }
 
   .cart-line {
     display: grid;
-    grid-template-columns: 4rem 1fr auto;
-    gap: vars.$spacing-unit;
+    grid-template-columns: 4.5rem 1fr auto;
+    gap: vars.$spacing-unit * 1.5;
+    padding-block-end: vars.$spacing-unit * 3;
+    border-block-end: 1px solid var(--rule);
+
+    &:last-child {
+      padding-block-end: 0;
+      border-block-end: 0;
+    }
 
     &__image {
-      width: 4rem;
-      height: 4rem;
+      width: 4.5rem;
+      height: 5.625rem;
       object-fit: cover;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
+      background: var(--paper-sunk);
 
       &--placeholder {
-        background: var(--color-surface);
+        background: var(--paper-sunk);
       }
     }
 
@@ -410,32 +429,50 @@
     }
 
     &__title {
+      font-family: vars.$font-display;
+      font-size: 1rem;
       color: inherit;
-      font-size: 0.9375rem;
       text-decoration: none;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--copper);
+      }
     }
 
     &__options {
       margin: 0;
-      color: var(--color-text-muted);
-      font-size: 0.8125rem;
+      @include mixins.eyebrow;
+      font-size: 0.625rem;
     }
 
     &__controls {
       display: flex;
       align-items: center;
-      gap: vars.$spacing-unit;
-      margin-block-start: 0.25rem;
+      gap: vars.$spacing-unit * 1.5;
+      margin-block-start: 0.375rem;
     }
 
     &__remove {
       border: 0;
       background: transparent;
-      color: var(--color-text-muted);
-      font: inherit;
-      font-size: 0.8125rem;
+      padding: 0;
+      color: var(--ink-faint);
+      font-family: vars.$font-body;
+      font-size: 0.75rem;
       text-decoration: underline;
+      text-underline-offset: 2px;
       cursor: pointer;
+
+      &:hover:not(:disabled),
+      &:focus-visible:not(:disabled) {
+        color: var(--critical);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
     }
 
     &__price {
@@ -444,32 +481,42 @@
     }
   }
 
+  // A stepper built from rules rather than a boxed widget.
   .cart-qty {
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border: 1px solid var(--rule-strong);
 
     button {
       width: 1.75rem;
       height: 1.75rem;
       border: 0;
       background: transparent;
-      color: inherit;
-      font: inherit;
+      color: var(--ink);
+      font-family: vars.$font-body;
+      font-size: 0.875rem;
+      line-height: 1;
       cursor: pointer;
+      transition: background-color 0.15s ease;
+
+      &:hover:not(:disabled),
+      &:focus-visible:not(:disabled) {
+        background: var(--paper-sunk);
+      }
 
       &:disabled {
-        opacity: 0.4;
+        opacity: 0.35;
         cursor: not-allowed;
       }
     }
 
     &__value {
-      min-width: 1.5rem;
+      min-width: 1.75rem;
       text-align: center;
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       font-variant-numeric: tabular-nums;
+      border-inline: 1px solid var(--rule-strong);
+      line-height: 1.75rem;
     }
   }
 </style>

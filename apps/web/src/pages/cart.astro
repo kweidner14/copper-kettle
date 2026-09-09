@@ -139,6 +139,7 @@ const weightLabel = formatWeight(
   </section>
 </Layout>
 
+
 <style lang="scss">
   @use '../styles/mixins' as mixins;
   @use '../styles/variables' as vars;
@@ -148,32 +149,39 @@ const weightLabel = formatWeight(
   }
 
   .cart-page {
-    padding-block: vars.$spacing-unit * 6;
+    padding-block: vars.$spacing-unit * 7 vars.$spacing-unit * 10;
 
     &__inner {
       @include mixins.container;
-      max-width: 46rem;
+      max-width: 56rem;
     }
 
     &__title {
-      margin: 0 0 vars.$spacing-unit * 3;
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit * 4;
+      padding-block-end: vars.$spacing-unit * 2;
+      border-block-end: 1px solid var(--ink);
     }
 
     &__notice {
-      padding: vars.$spacing-unit;
-      margin-block-end: vars.$spacing-unit * 2;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
-      font-size: 0.875rem;
+      padding: 0.875rem 1rem;
+      margin-block-end: vars.$spacing-unit * 3;
+      border-inline-start: 2px solid var(--copper);
+      background: var(--paper-sunk);
+      font-size: 0.9375rem;
     }
 
     &__empty {
-      color: var(--color-text-muted);
+      color: var(--ink-soft);
+
+      a {
+        color: var(--copper);
+        text-underline-offset: 3px;
+      }
     }
 
     &__lines {
       display: grid;
-      gap: vars.$spacing-unit * 3;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -181,54 +189,49 @@ const weightLabel = formatWeight(
 
     &__summary {
       display: grid;
-      gap: vars.$spacing-unit;
+      gap: 0.625rem;
+      justify-items: end;
       margin-block-start: vars.$spacing-unit * 4;
-      padding-block-start: vars.$spacing-unit * 2;
-      border-top: 1px solid var(--color-border);
     }
 
     &__row {
       display: flex;
       justify-content: space-between;
+      gap: vars.$spacing-unit * 4;
+      min-width: 16rem;
       font-variant-numeric: tabular-nums;
 
       &--muted {
-        color: var(--color-text-muted);
-        font-size: 0.875rem;
+        @include mixins.eyebrow;
       }
     }
 
     &__note {
-      margin: 0;
-      color: var(--color-text-muted);
+      margin: 0.25rem 0 0.75rem;
+      color: var(--ink-faint);
       font-size: 0.8125rem;
     }
 
     &__checkout {
-      justify-self: start;
-      padding: 0.875rem 1.75rem;
-      border-radius: 6px;
-      background: var(--color-primary);
-      color: var(--color-primary-contrast);
-      font-weight: 500;
-      text-decoration: none;
+      @include mixins.button-solid;
     }
   }
 
   .cart-row {
     display: grid;
-    grid-template-columns: 5rem 1fr auto;
+    grid-template-columns: 6rem 1fr auto;
     gap: vars.$spacing-unit * 2;
+    padding-block: vars.$spacing-unit * 3;
+    border-block-end: 1px solid var(--rule);
 
     &__image {
-      width: 5rem;
-      height: 5rem;
+      width: 6rem;
+      height: 7.5rem;
       object-fit: cover;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
+      background: var(--paper-sunk);
 
       &--placeholder {
-        background: var(--color-surface);
+        background: var(--paper-sunk);
       }
     }
 
@@ -239,51 +242,81 @@ const weightLabel = formatWeight(
     }
 
     &__title {
+      font-family: vars.$font-display;
+      font-size: 1.125rem;
       color: inherit;
       text-decoration: none;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--copper);
+      }
     }
 
     &__options {
       margin: 0;
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+      @include mixins.eyebrow;
     }
 
     &__controls {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: vars.$spacing-unit * 2;
-      margin-block-start: 0.5rem;
+      margin-block-start: 0.625rem;
     }
 
     &__form {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      margin: 0;
     }
 
     &__qty {
-      width: 4rem;
-      padding: 0.25rem 0.5rem;
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      background: var(--color-surface);
-      color: inherit;
-      font: inherit;
+      width: 3.5rem;
+      padding: 0.375rem 0.5rem;
+      border: 1px solid var(--rule-strong);
+      border-radius: 0;
+      background: var(--paper-raised);
+      color: var(--ink);
+      font-family: vars.$font-body;
+      font-size: 0.875rem;
+      font-variant-numeric: tabular-nums;
+
+      &:focus-visible {
+        outline: none;
+        border-color: var(--ink);
+      }
     }
 
     &__update,
     &__remove {
       border: 0;
       background: transparent;
-      color: var(--color-text-muted);
-      font: inherit;
-      font-size: 0.8125rem;
+      padding: 0;
+      color: var(--ink-faint);
+      font-family: vars.$font-body;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       text-decoration: underline;
+      text-underline-offset: 3px;
       cursor: pointer;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--ink);
+      }
+    }
+
+    &__remove:hover,
+    &__remove:focus-visible {
+      color: var(--critical);
     }
 
     &__price {
+      font-size: 1rem;
       font-variant-numeric: tabular-nums;
     }
   }

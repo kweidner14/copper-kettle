@@ -38,6 +38,19 @@ const title = product.seo?.title || product.title
 const description =
   product.seo?.description ||
   `${product.title} from Copper Kettle. ${formatMoney(product.priceRange.minVariantPrice)}.`
+
+// Rendered as a spec table. Built here so the markup stays a simple loop and
+// empty rows never reach the DOM.
+const specs = [
+  selectedVariant?.sku ? { term: 'SKU', value: selectedVariant.sku } : null,
+  // Normalised to grams first: this catalog stores weights in both OUNCES and
+  // POUNDS on the same product.
+  weightLabel ? { term: 'Shipping weight', value: weightLabel } : null,
+  selectedOptions.length > 0
+    ? { term: 'Selection', value: selectedOptions.map((option) => option.value).join(' / ') }
+    : null,
+  { term: 'Roasted', value: 'To order, in the Ozarks' },
+].filter((row): row is { term: string; value: string } => row !== null)
 ---
 
 <Layout title={title} description={description} canonicalUrl={canonicalUrl} ogImage={heroImage?.url}>
@@ -51,20 +64,22 @@ const description =
 
       <div class="product__layout">
         <div class="product__media">
-          {
-            heroImage ? (
-              <img
-                class="product__image"
-                src={heroImage.url}
-                alt={heroImage.altText ?? product.title}
-                width={heroImage.width ?? 900}
-                height={heroImage.height ?? 900}
-                loading="eager"
-              />
-            ) : (
-              <div class="product__image product__image--placeholder" aria-hidden="true" />
-            )
-          }
+          <div class="product__frame">
+            {
+              heroImage ? (
+                <img
+                  class="product__image"
+                  src={heroImage.url}
+                  alt={heroImage.altText ?? product.title}
+                  width={heroImage.width ?? 900}
+                  height={heroImage.height ?? 900}
+                  loading="eager"
+                />
+              ) : (
+                <div class="product__image product__image--placeholder" aria-hidden="true" />
+              )
+            }
+          </div>
 
           {
             galleryImages.length > 0 && (
@@ -87,79 +102,67 @@ const description =
         </div>
 
         <div class="product__details">
-          {product.vendor && <p class="product__vendor">{product.vendor}</p>}
-          <h1 class="product__title">{product.title}</h1>
+          <header class="product__head">
+            {product.vendor && <p class="product__vendor">{product.vendor}</p>}
+            <h1 class="product__title">{product.title}</h1>
 
-          {
-            selectedVariant ? (
-              <Price
-                class="product__price"
-                price={selectedVariant.price}
-                compareAtPrice={selectedVariant.compareAtPrice}
-              />
-            ) : (
-              <Price
-                class="product__price"
-                price={product.priceRange.minVariantPrice}
-                maxPrice={product.priceRange.maxVariantPrice}
-              />
-            )
-          }
-
-          <VariantPicker options={options} />
-
-          <p class:list={['product__stock', !inStock && 'product__stock--out']}>
-            {!inStock && 'Sold out'}
-            {inStock && lowStock && `Only ${remaining} left`}
-            {inStock && !lowStock && 'In stock'}
-          </p>
-
-          {/* A real form post, not a JS-only button: with no JavaScript this
-              still adds the line and redirects to /cart. src/scripts/cart.ts
-              upgrades it in place and opens the drawer. The variant is resolved
-              server-side, so the browser never maps options to a variant id. */}
-          <form class="product__buy" method="post" action="/api/cart/add" data-cart-add>
-            <input type="hidden" name="variantId" value={selectedVariant?.id ?? ''} />
-            <input type="hidden" name="quantity" value="1" />
-            <button class="product__add" type="submit" disabled={!inStock || !selectedVariant}>
-              {inStock ? 'Add to cart' : 'Unavailable'}
-            </button>
-          </form>
-
-          <dl class="product__meta">
             {
-              selectedVariant?.sku && (
-                <>
-                  <dt>SKU</dt>
-                  <dd>{selectedVariant.sku}</dd>
-                </>
+              selectedVariant ? (
+                <Price
+                  class="product__price"
+                  price={selectedVariant.price}
+                  compareAtPrice={selectedVariant.compareAtPrice}
+                />
+              ) : (
+                <Price
+                  class="product__price"
+                  price={product.priceRange.minVariantPrice}
+                  maxPrice={product.priceRange.maxVariantPrice}
+                />
               )
             }
-            {
-              weightLabel && (
-                <>
-                  <dt>Shipping weight</dt>
-                  {/* Normalised to grams first: this catalog stores weights in
-                      both OUNCES and POUNDS on the same product. */}
-                  <dd>{weightLabel}</dd>
-                </>
-              )
-            }
-            {
-              selectedOptions.length > 0 && (
-                <>
-                  <dt>Selected</dt>
-                  <dd>{selectedOptions.map((option) => option.value).join(' / ')}</dd>
-                </>
-              )
-            }
-          </dl>
+          </header>
 
           {
             product.descriptionHtml && (
               <div class="product__description" set:html={product.descriptionHtml} />
             )
           }
+
+          <VariantPicker options={options} />
+
+          <div class="product__buy-block">
+            <p class:list={['product__stock', !inStock && 'product__stock--out']}>
+              <span class="product__stock-dot" aria-hidden="true"></span>
+              {!inStock && 'Sold out'}
+              {inStock && lowStock && `Only ${remaining} left`}
+              {inStock && !lowStock && 'In stock, ships tomorrow'}
+            </p>
+
+            {/* A real form post, not a JS-only button: with no JavaScript this
+                still adds the line and redirects to /cart. src/scripts/cart.ts
+                upgrades it in place and opens the drawer. The variant is
+                resolved server-side, so the browser never maps options to a
+                variant id. */}
+            <form class="product__buy" method="post" action="/api/cart/add" data-cart-add>
+              <input type="hidden" name="variantId" value={selectedVariant?.id ?? ''} />
+              <input type="hidden" name="quantity" value="1" />
+              <button class="product__add" type="submit" disabled={!inStock || !selectedVariant}>
+                {inStock ? 'Add to cart' : 'Unavailable'}
+              </button>
+            </form>
+          </div>
+
+          <dl class="product__specs">
+            {
+              specs.map((row) => (
+                <div class="product__spec">
+                  <dt>{row.term}</dt>
+                  <dd class="tabular">{row.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
         </div>
       </div>
     </div>
@@ -171,7 +174,7 @@ const description =
   @use '../../styles/variables' as vars;
 
   .product {
-    padding-block: vars.$spacing-unit * 6;
+    padding-block: vars.$spacing-unit * 4 vars.$spacing-unit * 10;
 
     &__inner {
       @include mixins.container;
@@ -179,13 +182,13 @@ const description =
 
     &__breadcrumb {
       display: flex;
-      gap: vars.$spacing-unit;
-      margin-block-end: vars.$spacing-unit * 3;
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+      align-items: center;
+      gap: 0.5rem;
+      margin-block-end: vars.$spacing-unit * 4;
+      @include mixins.eyebrow;
 
       a {
-        color: inherit;
+        @include mixins.rule-link(vars.$ink-faint);
       }
     }
 
@@ -194,70 +197,125 @@ const description =
       gap: vars.$spacing-unit * 5;
 
       @include mixins.respond-to(lg) {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+        // The image column is wider: the packaging is the argument on a coffee
+        // site, and the buy controls need less room than they are usually given.
+        grid-template-columns: 1.15fr 1fr;
+        gap: vars.$spacing-unit * 9;
         align-items: start;
       }
     }
 
-    &__image {
-      width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      background: var(--color-surface);
+    &__media {
+      display: grid;
+      gap: vars.$spacing-unit * 2;
 
-      &--placeholder {
-        display: block;
+      @include mixins.respond-to(lg) {
+        // Sticks while the details column scrolls past it.
+        position: sticky;
+        top: calc(var(--header-height) + #{vars.$spacing-unit * 3});
       }
     }
 
+    &__frame {
+      overflow: hidden;
+      background: var(--paper-sunk);
+      aspect-ratio: 4 / 5;
+    }
+
+    &__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     &__thumbs {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
       gap: vars.$spacing-unit;
-      margin-block-start: vars.$spacing-unit;
+      margin: 0;
       padding: 0;
       list-style: none;
     }
 
     &__thumb {
-      width: 4.5rem;
-      height: 4.5rem;
+      width: 100%;
+      aspect-ratio: 1;
       object-fit: cover;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
+      background: var(--paper-sunk);
     }
 
     &__details {
       display: grid;
-      gap: vars.$spacing-unit * 2.5;
+      align-content: start;
+      gap: vars.$spacing-unit * 4;
+
+      @include mixins.respond-to(lg) {
+        max-width: 30rem;
+      }
+    }
+
+    &__head {
+      display: grid;
+      gap: vars.$spacing-unit;
+      padding-block-end: vars.$spacing-unit * 3;
+      border-block-end: 1px solid var(--rule);
     }
 
     &__vendor {
+      @include mixins.eyebrow;
       margin: 0;
-      color: var(--color-text-muted);
-      font-size: 0.8125rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
     }
 
     &__title {
+      font-size: vars.$step-1;
       margin: 0;
-      font-size: 1.75rem;
     }
 
     &__price {
       font-size: 1.25rem;
     }
 
+    &__description {
+      color: var(--ink-soft);
+      max-width: vars.$measure;
+
+      :global(p) {
+        margin-block: 0 0.75em;
+      }
+
+      :global(p:last-child) {
+        margin-block-end: 0;
+      }
+    }
+
+    &__buy-block {
+      display: grid;
+      gap: vars.$spacing-unit * 2;
+    }
+
+    // A dot and a line, not a coloured pill. Reads as a status note rather than
+    // a badge component.
     &__stock {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       margin: 0;
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+      @include mixins.eyebrow;
+      color: var(--ink-soft);
 
       &--out {
-        color: var(--color-text);
+        color: var(--critical);
+      }
+    }
+
+    &__stock-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--positive);
+
+      .product__stock--out & {
+        background: var(--critical);
       }
     }
 
@@ -266,42 +324,34 @@ const description =
     }
 
     &__add {
+      @include mixins.button-solid;
       width: 100%;
-      padding: 0.875rem 1.25rem;
-      border: 0;
-      border-radius: 6px;
-      background: var(--color-primary);
-      color: var(--color-primary-contrast);
-      font: inherit;
-      font-weight: 500;
-      cursor: pointer;
-
-      &:disabled {
-        background: var(--color-surface);
-        color: var(--color-text-muted);
-        cursor: not-allowed;
-      }
     }
 
-    &__meta {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.25rem vars.$spacing-unit * 2;
+    // Spec rows separated by hairlines. This is where a storefront theme would
+    // put an accordion; a table of facts is faster to read and looks like print.
+    &__specs {
       margin: 0;
-      font-size: 0.875rem;
+      border-block-start: 1px solid var(--rule);
+    }
+
+    &__spec {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: vars.$spacing-unit * 2;
+      padding-block: 0.75rem;
+      border-block-end: 1px solid var(--rule);
 
       dt {
-        color: var(--color-text-muted);
+        @include mixins.eyebrow;
       }
 
       dd {
         margin: 0;
+        font-size: 0.9375rem;
+        text-align: right;
       }
-    }
-
-    &__description {
-      color: var(--color-text-muted);
-      line-height: 1.7;
     }
   }
 </style>

@@ -14,16 +14,27 @@ const { products, pageInfo } = await shopify.getProducts({
 })
 ---
 
-<Layout title="Shop all coffee" description="Every roast, grind and size in the Copper Kettle range.">
+<Layout
+  title="Shop all coffee"
+  description="Every roast, grind and size in the Copper Kettle range."
+>
   <section class="catalog">
     <div class="catalog__inner">
-      <header class="catalog__header">
-        <h1 class="catalog__title">Shop all</h1>
-        <p class="catalog__count">
-          {products.length}
-          {products.length === 1 ? 'product' : 'products'}
+      <header class="catalog__masthead">
+        <p class="catalog__eyebrow">The catalogue</p>
+        <h1 class="catalog__title">Coffee, roasted to order</h1>
+        <p class="catalog__lede">
+          Everything below is roasted the week it ships. Pick your roast, grind and size
+          on the bag itself, rather than hunting through a dozen near-identical listings.
         </p>
       </header>
+
+      <div class="catalog__bar">
+        <p class="catalog__count">
+          {products.length} {products.length === 1 ? 'product' : 'products'}
+        </p>
+        <p class="catalog__sort">Sorted by popularity</p>
+      </div>
 
       {
         products.length === 0 ? (
@@ -33,8 +44,8 @@ const { products, pageInfo } = await shopify.getProducts({
         ) : (
           <ul class="catalog__grid" role="list">
             {products.map((product, index) => (
-              <li>
-                <ProductCard product={product} eager={index < 4} />
+              <li class="catalog__item">
+                <ProductCard product={product} index={index} eager={index < 3} />
               </li>
             ))}
           </ul>
@@ -47,53 +58,73 @@ const { products, pageInfo } = await shopify.getProducts({
 </Layout>
 
 <style lang="scss">
-  @use '../../styles/mixins' as mixins;
   @use '../../styles/variables' as vars;
+  @use '../../styles/mixins' as mixins;
 
   .catalog {
-    padding-block: vars.$spacing-unit * 6;
+    padding-block: vars.$spacing-unit * 7 vars.$spacing-unit * 10;
 
     &__inner {
       @include mixins.container;
     }
 
-    &__header {
+    &__masthead {
+      max-width: 46rem;
+      margin-block-end: vars.$spacing-unit * 6;
+    }
+
+    &__eyebrow {
+      @include mixins.eyebrow;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__title {
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__lede {
+      max-width: vars.$measure;
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 1.0625rem;
+    }
+
+    // A hairline rail carrying the result count and the sort state. Does the
+    // job a filter bar does on a theme, without the chrome.
+    &__bar {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
       gap: vars.$spacing-unit * 2;
+      padding-block-end: vars.$spacing-unit;
+      border-block-end: 1px solid var(--ink);
       margin-block-end: vars.$spacing-unit * 4;
     }
 
-    &__title {
+    &__count,
+    &__sort {
+      @include mixins.eyebrow;
       margin: 0;
+      color: var(--ink);
     }
 
-    &__count {
-      margin: 0;
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
+    &__sort {
+      color: var(--ink-faint);
     }
 
     &__grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: vars.$spacing-unit * 3;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+      gap: vars.$spacing-unit * 5 vars.$spacing-unit * 4;
       margin: 0;
       padding: 0;
       list-style: none;
-
-      @include mixins.respond-to(md) {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      @include mixins.respond-to(lg) {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
     }
 
     &__empty {
-      color: var(--color-text-muted);
+      padding-block: vars.$spacing-unit * 6;
+      color: var(--ink-soft);
     }
   }
 </style>

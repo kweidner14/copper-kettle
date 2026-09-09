@@ -29,29 +29,37 @@ const onSale = isOnSale(price, compareAtPrice)
 </span>
 
 <style lang="scss">
+  @use '../../styles/variables' as vars;
+  @use '../../styles/mixins' as mixins;
+
   .price {
     display: inline-flex;
     align-items: baseline;
     gap: 0.5rem;
+    font-variant-numeric: tabular-nums;
 
     &__amount {
-      font-variant-numeric: tabular-nums;
+      font-size: 0.9375rem;
+      color: var(--ink);
 
+      // On sale the live price takes the accent; the struck original sits back.
       &--sale {
-        color: var(--color-primary);
+        color: var(--copper);
       }
     }
 
     &__compare {
-      color: var(--color-text-muted);
-      font-size: 0.875em;
+      color: var(--ink-faint);
+      font-size: 0.8125rem;
+      text-decoration-thickness: 1px;
     }
 
     &__badge {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--color-primary);
+      @include mixins.eyebrow;
+      font-size: 0.5625rem;
+      color: var(--copper);
+      border: 1px solid currentColor;
+      padding: 0.125rem 0.3125rem;
     }
   }
 </style>

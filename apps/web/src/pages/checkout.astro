@@ -1,0 +1,190 @@
+---
+import { SHOPIFY_STORE_DOMAIN, SHOPIFY_STORE_PASSWORD } from 'astro:env/server'
+import Layout from '../layouts/Layout.astro'
+import { formatMoney } from '../lib/shopify/money'
+import { resolveCart } from '../lib/shopify/cart'
+
+/**
+ * Handoff to Shopify checkout.
+ *
+ * Exists because a Partner development store cannot switch its password page
+ * off, and that page eats the first request to the cart permalink. The observed
+ * sequence is: click Checkout, get the password screen, unlock, and land on the
+ * store home page with an empty cart, because the permalink request that would
+ * have transferred the cart was consumed by the gate and never re-issued.
+ *
+ * Unlocking first fixes it. The unlock sets a session cookie on the Shopify
+ * domain, after which the same checkout URL resolves straight to the real
+ * checkout. So this page splits the handoff into unlock, then continue.
+ *
+ * When SHOPIFY_STORE_PASSWORD is empty (any store that is not password
+ * protected) this redirects immediately and the visitor never sees it. That is
+ * what makes this a demo affordance rather than something baked into the cart:
+ * leaving the development store retires it with a config change.
+ */
+const cart = await resolveCart(Astro)
+
+if (!cart || cart.lines.nodes.length === 0) {
+  return Astro.redirect('/cart')
+}
+
+if (!SHOPIFY_STORE_PASSWORD) {
+  return Astro.redirect(cart.checkoutUrl)
+}
+
+const unlockUrl = `https://${SHOPIFY_STORE_DOMAIN}/password`
+const itemCount = cart.totalQuantity
+---
+
+<Layout title="Checkout" description="Continue to secure checkout." noindex>
+  <section class="handoff">
+    <div class="handoff__inner">
+      <p class="handoff__eyebrow">Demo store</p>
+      <h1 class="handoff__title">One step before checkout</h1>
+
+      <p class="handoff__lede">
+        This storefront runs on a Shopify development store, and Shopify does not allow
+        those to switch off their password page. Checkout itself works normally once the
+        store is unlocked.
+      </p>
+
+      <ol class="handoff__steps">
+        <li class="handoff__step">
+          <span class="handoff__number">01</span>
+          <div>
+            <h2 class="handoff__step-title">Unlock the store</h2>
+            <p class="handoff__step-copy">
+              Opens in a new tab. The password is
+              <code class="handoff__password">{SHOPIFY_STORE_PASSWORD}</code>. You only
+              need to do this once per browser.
+            </p>
+            <a
+              class="handoff__unlock"
+              href={unlockUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Unlock store
+            </a>
+          </div>
+        </li>
+
+        <li class="handoff__step">
+          <span class="handoff__number">02</span>
+          <div>
+            <h2 class="handoff__step-title">Come back and continue</h2>
+            <p class="handoff__step-copy">
+              Close that tab once it lets you in, then continue below. Your
+              {itemCount === 1 ? 'item' : `${itemCount} items`} and the
+              {formatMoney(cart.cost.subtotalAmount)} subtotal carry straight through.
+            </p>
+            {/* The real Storefront API checkout URL. Nothing about this link is
+                special; it simply needs the unlock cookie to already exist. */}
+            <a class="handoff__continue" href={cart.checkoutUrl} rel="nofollow">
+              Continue to checkout
+            </a>
+          </div>
+        </li>
+      </ol>
+
+      <p class="handoff__back">
+        <a href="/cart">Back to cart</a>
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  @use '../styles/mixins' as mixins;
+  @use '../styles/variables' as vars;
+
+  .handoff {
+    padding-block: vars.$spacing-unit * 7 vars.$spacing-unit * 10;
+
+    &__inner {
+      @include mixins.container;
+      max-width: 44rem;
+    }
+
+    &__eyebrow {
+      @include mixins.eyebrow;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__title {
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__lede {
+      max-width: vars.$measure;
+      margin: 0 0 vars.$spacing-unit * 5;
+      color: var(--ink-soft);
+      font-size: 1.0625rem;
+    }
+
+    &__steps {
+      display: grid;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-block-start: 1px solid var(--ink);
+    }
+
+    &__step {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: vars.$spacing-unit * 2;
+      padding-block: vars.$spacing-unit * 3;
+      border-block-end: 1px solid var(--rule);
+    }
+
+    &__number {
+      @include mixins.eyebrow;
+      color: var(--copper);
+    }
+
+    &__step-title {
+      font-family: vars.$font-display;
+      font-size: 1.1875rem;
+      font-weight: 500;
+      margin: 0 0 0.375rem;
+    }
+
+    &__step-copy {
+      max-width: vars.$measure;
+      margin: 0 0 vars.$spacing-unit * 2;
+      color: var(--ink-soft);
+      font-size: 0.9375rem;
+    }
+
+    // The password is meant to be read and typed, so it gets the weight of a
+    // value rather than being buried in the sentence.
+    &__password {
+      display: inline-block;
+      padding: 0.1em 0.45em;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9375em;
+      letter-spacing: 0.04em;
+    }
+
+    &__unlock {
+      @include mixins.button-outline;
+    }
+
+    &__continue {
+      @include mixins.button-solid;
+    }
+
+    &__back {
+      margin-block-start: vars.$spacing-unit * 4;
+
+      a {
+        @include mixins.eyebrow;
+        @include mixins.rule-link(vars.$ink);
+      }
+    }
+  }
+</style>

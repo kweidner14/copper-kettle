@@ -58,6 +58,17 @@ export default defineConfig({
         access: 'public',
         default: '2026-04',
       }),
+      // Set only while the store is a Partner development store, which cannot
+      // turn its password page off. When set, /checkout shows an unlock step
+      // before handing off; when empty, /checkout redirects straight to
+      // Shopify. Leaving this unset is what retires the workaround, so moving
+      // to a paid plan needs no code change.
+      SHOPIFY_STORE_PASSWORD: envField.string({
+        context: 'server',
+        access: 'public',
+        optional: true,
+        default: '',
+      }),
       SHOPIFY_STOREFRONT_PRIVATE_TOKEN: envField.string({
         context: 'server',
         access: 'secret',

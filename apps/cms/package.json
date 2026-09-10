@@ -2,6 +2,7 @@
   "name": "cms",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Payload CMS 3.x backend, deployable standalone (e.g. Railway) with Postgres + S3-compatible media storage.",
   "scripts": {
     "dev": "next dev --port 3000",
@@ -9,7 +10,8 @@
     "start": "next start",
     "lint": "eslint .",
     "generate:types": "payload generate:types",
-    "payload": "payload"
+    "payload": "payload",
+    "seed:about": "node --env-file=.env --import tsx scripts/seed-about.mts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.86.0",

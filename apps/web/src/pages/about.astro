@@ -61,10 +61,46 @@ const description = page?.seo?.metaDescription || 'About us.'
       }
     }
 
-    &__body {
+    // Payload rich text arrives as .rich-text from the RichText component, so
+    // the prose rules reach across the component boundary. Constrained to the
+    // measure rather than the 46rem container: the masthead wants the width,
+    // the reading column does not, and full-width body copy runs to about 90
+    // characters a line.
+    :global(.rich-text) {
       max-width: vars.$measure;
-      color: var(--ink-soft);
       font-size: 1.0625rem;
+      color: var(--ink);
+    }
+
+    :global(.rich-text p) {
+      margin-block: 0 1.15em;
+    }
+
+    :global(.rich-text h2) {
+      font-size: 1.5rem;
+      margin-block: 2em 0.5em;
+    }
+
+    :global(.rich-text h3) {
+      font-size: 1.1875rem;
+      margin-block: 1.75em 0.4em;
+    }
+
+    :global(.rich-text h2:first-child),
+    :global(.rich-text h3:first-child) {
+      margin-block-start: 0;
+    }
+
+    :global(.rich-text a) {
+      color: var(--copper);
+      text-underline-offset: 3px;
+    }
+
+    :global(.rich-text blockquote) {
+      margin-inline: 0;
+      padding-inline-start: 1.25rem;
+      border-inline-start: 2px solid var(--copper);
+      color: var(--ink-soft);
     }
   }
 </style>

@@ -239,7 +239,7 @@
 
         <p class="cart-panel__note">Shipping and taxes are calculated at checkout.</p>
 
-        <a class="cart-panel__checkout" href={cart!.checkoutUrl} rel="nofollow">Checkout</a>
+        <a class="cart-panel__checkout" href="/checkout" rel="nofollow">Checkout</a>
       </footer>
     {/if}
   </div>

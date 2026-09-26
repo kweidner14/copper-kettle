@@ -160,7 +160,7 @@
     {/if}
 
     {#if lines.length === 0}
-      <p class="cart-panel__empty">Your cart is empty.</p>
+      <p class="cart-panel__empty">Your cart is empty. It is the most honest thing on this site.</p>
     {:else}
       <ul class="cart-lines">
         {#each lines as line (line.id)}

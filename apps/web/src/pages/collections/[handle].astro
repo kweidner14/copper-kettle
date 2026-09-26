@@ -58,7 +58,9 @@ const description = collection.seo?.description || `${collection.title} from Cop
 
       {
         products.length === 0 ? (
-          <p class="collection__empty">Nothing in this collection yet.</p>
+          <p class="collection__empty">
+            Nothing in this collection yet. Even by our standards, that is a lot of nothing.
+          </p>
         ) : (
           <ul class="collection__grid" role="list">
             {products.map((product, index) => (

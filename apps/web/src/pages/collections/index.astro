@@ -11,10 +11,18 @@ const GRID_SIZES =
   '(min-width: 1320px) 392px, (min-width: 1104px) 31vw, (min-width: 720px) 46vw, calc(100vw - 48px)'
 ---
 
-<Layout title="Collections" description="Browse Copper Kettle coffee by collection.">
+<Layout
+  title="Collections"
+  description="The Copper Kettle demo range, sorted into piles. Still nothing for sale."
+>
   <section class="collections">
     <div class="collections__inner">
-      <h1 class="collections__title">Collections</h1>
+      <header class="collections__head">
+        <h1 class="collections__title">Collections</h1>
+        <p class="collections__lede">
+          The same imaginary coffee, sorted into piles. It helps us feel organised.
+        </p>
+      </header>
 
       {
         collections.length === 0 ? (
@@ -64,11 +72,22 @@ const GRID_SIZES =
       @include mixins.container;
     }
 
-    &__title {
-      font-size: vars.$step-1;
+    &__head {
       margin: 0 0 vars.$spacing-unit * 4;
       padding-block-end: vars.$spacing-unit * 2;
       border-block-end: 1px solid var(--ink);
+    }
+
+    &__title {
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit;
+    }
+
+    &__lede {
+      max-width: vars.$measure;
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 1.0625rem;
     }
 
     &__empty {

@@ -1,7 +1,8 @@
 import type { PaginatedDocs, Page } from './types'
 
-// Read at build time (Astro SSG), so this must be the server-reachable URL
-// for Payload, not necessarily the same as the public browser-facing one.
+// Read at build time by the prerendered content pages, so this must be the
+// server-reachable URL for Payload, not necessarily the same as the public
+// browser-facing one.
 const API_URL = import.meta.env.PAYLOAD_API_URL ?? 'http://localhost:3000'
 
 interface FetchOptions {
@@ -27,16 +28,34 @@ async function payloadFetch<T>(collection: string, options: FetchOptions = {}): 
   return res.json() as Promise<T>
 }
 
+// Payload is optional content, not a dependency of the storefront. Every page
+// that reads it already renders without it, so an unreachable or failing CMS
+// logs a warning and reads as "no content" rather than failing the whole build
+// over an About page.
+function warnUnavailable(error: unknown): void {
+  console.warn(`[payload] ${API_URL} unavailable, rendering without CMS content: ${String(error)}`)
+}
+
 export async function getPages(depth = 1): Promise<Page[]> {
-  const data = await payloadFetch<PaginatedDocs<Page>>('pages', { depth, limit: 100 })
-  return data.docs
+  try {
+    const data = await payloadFetch<PaginatedDocs<Page>>('pages', { depth, limit: 100 })
+    return data.docs
+  } catch (error) {
+    warnUnavailable(error)
+    return []
+  }
 }
 
 export async function getPage(slug: string, depth = 1): Promise<Page | null> {
-  const data = await payloadFetch<PaginatedDocs<Page>>('pages', {
-    depth,
-    limit: 1,
-    where: { slug: { equals: slug } },
-  })
-  return data.docs[0] ?? null
+  try {
+    const data = await payloadFetch<PaginatedDocs<Page>>('pages', {
+      depth,
+      limit: 1,
+      where: { slug: { equals: slug } },
+    })
+    return data.docs[0] ?? null
+  } catch (error) {
+    warnUnavailable(error)
+    return null
+  }
 }

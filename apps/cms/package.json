@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "generate:types": "payload generate:types",
     "payload": "payload",
-    "seed:about": "node --env-file=.env --import tsx scripts/seed-about.mts"
+    "seed:pages": "node --env-file=.env --import tsx scripts/seed-pages.mts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.86.0",

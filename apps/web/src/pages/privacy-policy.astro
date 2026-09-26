@@ -17,7 +17,8 @@ const description = page?.seo?.metaDescription || 'Our privacy policy.'
   <section class="page-content" data-reveal>
     <div class="page-content__inner">
       <h1 class="page-content__title">{page?.title ?? 'Privacy Policy'}</h1>
-      {!page && (
+      {/* Setup hint for whoever is running this locally; never shipped. */}
+      {!page && import.meta.env.DEV && (
         <p class="page-content__hint">
           No "privacy-policy" page found in Payload yet — create a Page with slug{' '}
           <code>privacy-policy</code>.

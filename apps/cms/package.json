@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "generate:types": "payload generate:types",
     "payload": "payload",
     "seed:pages": "node --env-file=.env --import tsx scripts/seed-pages.mts"

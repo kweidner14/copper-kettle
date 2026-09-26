@@ -34,3 +34,7 @@ apps/cms/*.db
 
 # typescript incremental build state
 *.tsbuildinfo
+
+# Payload regenerates this on every dev start; nothing imports it yet. Commit
+# it (and drop this line) once code starts relying on the generated types.
+apps/cms/src/payload-types.ts

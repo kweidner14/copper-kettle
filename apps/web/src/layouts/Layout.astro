@@ -4,6 +4,16 @@ import Header from '../components/Header.astro'
 import { resolveCart } from '../lib/shopify/cart'
 import { publicPath } from '../lib/url'
 import Footer from '../components/Footer.astro'
+// Fonts are self-hosted from Fontsource rather than loaded from Google Fonts.
+// The Google stylesheet was the largest render-blocking request on every page
+// (a separate origin, then a second hop for the files), and it only requested
+// upright Fraunces, so the italic in the home hero was a synthesised slant.
+// Fraunces ships with its opsz axis in both styles; Archivo with weight.
+import '@fontsource-variable/fraunces/opsz.css'
+import '@fontsource-variable/fraunces/opsz-italic.css'
+import '@fontsource-variable/archivo/wght.css'
+import frauncesLatin from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2?url'
+import archivoLatin from '@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2?url'
 import '../styles/global.scss'
 
 export interface Props {
@@ -62,14 +72,12 @@ const structuredData = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={resolvedOgImage} />
 
-    <!-- Fraunces carries the brand voice; Archivo does the working text.
-         Both are variable, so the two files cover every weight in the design. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400..700&display=swap"
-    />
+    <!-- Fraunces carries the brand voice; Archivo does the working text. Both
+         are variable, so one file each covers every weight. The two Latin
+         uprights are on every page above the fold, so they are preloaded;
+         the italic and other subsets load when the page asks for them. -->
+    <link rel="preload" href={frauncesLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={archivoLatin} as="font" type="font/woff2" crossorigin />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />

@@ -53,7 +53,7 @@ const { products, pageInfo } = await shopify.getProducts({
           <ul class="catalog__grid" role="list">
             {products.map((product, index) => (
               <li class="catalog__item">
-                <ProductCard product={product} index={index} eager={index < 3} />
+                <ProductCard product={product} index={index} eager={index < 3} priority={index === 0} />
               </li>
             ))}
           </ul>

@@ -7,11 +7,13 @@ interface Props {
   product: ProductCard
   /** Eager-load the first row so the grid does not pop in on LCP. */
   eager?: boolean
+  /** The first card's image is usually the page's LCP element. */
+  priority?: boolean
   /** Index in the listing, rendered as a catalogue number. */
   index?: number
 }
 
-const { product, eager = false, index } = Astro.props
+const { product, eager = false, priority = false, index } = Astro.props
 
 const image = product.featuredImage
 const minPrice = product.priceRange.minVariantPrice
@@ -38,7 +40,8 @@ const catalogueNumber = typeof index === 'number' ? String(index + 1).padStart(2
             alt={image.altText ?? product.title}
             width={image.width ?? 600}
             height={image.height ?? 600}
-            loading={eager ? 'eager' : 'lazy'}
+            loading={eager || priority ? 'eager' : 'lazy'}
+            fetchpriority={priority ? 'high' : undefined}
             decoding={eager ? 'sync' : 'async'}
           />
         ) : (
@@ -51,7 +54,8 @@ const catalogueNumber = typeof index === 'number' ? String(index + 1).padStart(2
     </div>
 
     <div class="product-card__body">
-      <h3 class="product-card__title">{product.title}</h3>
+      {/* h2: every page that lists cards has only its h1 above the grid. */}
+      <h2 class="product-card__title">{product.title}</h2>
 
       <div class="product-card__meta">
         <Price

@@ -1,9 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro'
 import { createShopifyApi } from '../../lib/shopify/api'
+import { fluidImage } from '../../lib/shopify/image'
 
 const shopify = createShopifyApi(Astro)
 const collections = await shopify.getCollections()
+
+// repeat(auto-fill, minmax(20rem, 1fr)): three columns from 1104px, two from 720px.
+const GRID_SIZES =
+  '(min-width: 1320px) 392px, (min-width: 1104px) 31vw, (min-width: 720px) 46vw, calc(100vw - 48px)'
 ---
 
 <Layout title="Collections" description="Browse Copper Kettle coffee by collection.">
@@ -24,7 +29,7 @@ const collections = await shopify.getCollections()
                   {collection.image ? (
                     <img
                       class="collections__image"
-                      src={collection.image.url}
+                      {...fluidImage(collection.image, GRID_SIZES)}
                       alt={collection.image.altText ?? collection.title}
                       width={collection.image.width ?? 600}
                       height={collection.image.height ?? 400}

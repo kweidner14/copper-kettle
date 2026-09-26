@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import { fixedImage } from '../lib/shopify/image'
 import { formatMoney } from '../lib/shopify/money'
 import { resolveCart } from '../lib/shopify/cart'
 import { formatWeight, totalGrams } from '../lib/shopify/weight'
@@ -50,7 +51,7 @@ const weightLabel = formatWeight(
                   {line.merchandise.image ? (
                     <img
                       class="cart-row__image"
-                      src={line.merchandise.image.url}
+                      {...fixedImage(line.merchandise.image, 80)}
                       alt={line.merchandise.image.altText ?? line.merchandise.product.title}
                       width="80"
                       height="80"

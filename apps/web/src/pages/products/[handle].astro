@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro'
 import Price from '../../components/shop/Price.astro'
 import VariantPicker from '../../components/shop/VariantPicker.astro'
 import { createShopifyApi } from '../../lib/shopify/api'
+import { fluidImage, imageUrl } from '../../lib/shopify/image'
 import { formatMoney } from '../../lib/shopify/money'
 import { resolveVariantSelection } from '../../lib/shopify/variants'
 import { formatWeight, variantWeightInGrams } from '../../lib/shopify/weight'
@@ -30,6 +31,12 @@ const galleryImages =
   heroImage && !productImages.some((image) => image.url === heroImage.url)
     ? [heroImage, ...productImages]
     : productImages
+
+// The media column is the 1.15fr side of the lg grid; below lg it is full
+// width. Thumbnails are auto-fill minmax(5rem, 1fr) tracks, so roughly 100px.
+const MAIN_SIZES = '(min-width: 1320px) 625px, (min-width: 1024px) 46vw, calc(100vw - 48px)'
+const THUMB_SIZES = '100px'
+const THUMB_WIDTHS = [100, 200, 300]
 
 const weightLabel = formatWeight(selectedVariant ? variantWeightInGrams(selectedVariant) : null)
 
@@ -84,7 +91,12 @@ const specs = [
 ].filter((row): row is { term: string; value: string } => row !== null)
 ---
 
-<Layout title={title} description={description} canonicalUrl={canonicalUrl} ogImage={heroImage?.url}>
+<Layout
+  title={title}
+  description={description}
+  canonicalUrl={canonicalUrl}
+  ogImage={heroImage ? imageUrl(heroImage, 1200) : undefined}
+>
   <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
 
   <article class="product">
@@ -102,11 +114,12 @@ const specs = [
               heroImage ? (
                 <img
                   class="product__image"
-                  src={heroImage.url}
+                  {...fluidImage(heroImage, MAIN_SIZES)}
                   alt={heroImage.altText ?? product.title}
                   width={heroImage.width ?? 900}
                   height={heroImage.height ?? 900}
                   loading="eager"
+                  fetchpriority="high"
                   data-gallery-main
                 />
               ) : (
@@ -115,29 +128,36 @@ const specs = [
             }
           </div>
 
-          {/* Each thumbnail is a link to the full-size image, so it still does
-              something without JavaScript. The script below upgrades a click
-              into swapping the main frame in place. */}
+          {/* Each thumbnail is a link to a large copy of its image, so it still
+              does something without JavaScript. The script below upgrades a
+              click into swapping the main frame in place, which is why each
+              link also carries the main frame's src and srcset for its image. */}
           {
             heroImage && galleryImages.length > 1 && (
               <ul class="product__thumbs" role="list" aria-label="Product images">
                 {galleryImages.map((image, index) => {
                   const alt = image.altText ?? product.title
                   const isCurrent = image.url === heroImage.url
+                  const main = fluidImage(image, MAIN_SIZES)
                   return (
                     <li>
                       <a
                         class="product__thumb-link"
-                        href={image.url}
+                        href={imageUrl(image, 1600)}
                         aria-current={isCurrent ? 'true' : undefined}
                         data-gallery-thumb
+                        data-src={main.src}
+                        data-srcset={main.srcset}
                         data-alt={alt}
                         data-width={image.width ?? 900}
                         data-height={image.height ?? 900}
                       >
                         <img
                           class="product__thumb"
-                          src={image.url}
+                          {...fluidImage(image, THUMB_SIZES, {
+                            fallbackWidth: 200,
+                            widths: THUMB_WIDTHS,
+                          })}
                           alt=""
                           width={image.width ?? 160}
                           height={image.height ?? 160}
@@ -225,7 +245,7 @@ const specs = [
 
 <script>
   // Swaps the main frame in place. Without this, each thumbnail is a plain link
-  // to the full-size image, which is a worse experience but not a broken one.
+  // to a large copy of the image, which is a worse experience but not a broken one.
   const main = document.querySelector<HTMLImageElement>('[data-gallery-main]')
   const thumbs = document.querySelectorAll<HTMLAnchorElement>('[data-gallery-thumb]')
 
@@ -234,7 +254,10 @@ const specs = [
       if (!main) return
       event.preventDefault()
 
-      main.src = thumb.href
+      // srcset first: while it is set, the browser picks from it and ignores src,
+      // so changing src alone would leave the old image showing.
+      if (thumb.dataset.srcset) main.srcset = thumb.dataset.srcset
+      main.src = thumb.dataset.src ?? thumb.href
       main.alt = thumb.dataset.alt ?? ''
       // Kept in step with the source so the frame never reflows mid-swap.
       if (thumb.dataset.width) main.width = Number(thumb.dataset.width)

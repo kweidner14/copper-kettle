@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Cart } from '../../lib/shopify/cart'
+  import { fixedImage } from '../../lib/shopify/image'
   import { formatMoney } from '../../lib/shopify/money'
   import { formatWeight, totalGrams } from '../../lib/shopify/weight'
 
@@ -167,7 +168,7 @@
             {#if line.merchandise.image}
               <img
                 class="cart-line__image"
-                src={line.merchandise.image.url}
+                {...fixedImage(line.merchandise.image, 64)}
                 alt={line.merchandise.image.altText ?? line.merchandise.product.title}
                 width="64"
                 height="64"

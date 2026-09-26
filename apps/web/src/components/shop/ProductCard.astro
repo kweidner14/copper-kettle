@@ -1,5 +1,6 @@
 ---
 import Price from './Price.astro'
+import { fluidImage } from '../../lib/shopify/image'
 import type { ProductCard } from '../../lib/shopify/models'
 
 interface Props {
@@ -18,6 +19,11 @@ const maxPrice = product.priceRange.maxVariantPrice
 const compareAt = product.compareAtPriceRange.minVariantPrice
 const variantCount = product.variantsCount?.count ?? 0
 
+// The grids that use this card are repeat(auto-fill, minmax(17rem, 1fr)) in the
+// site container: four columns from 1264px, three from 960px, two from 624px.
+const GRID_SIZES =
+  '(min-width: 1264px) 290px, (min-width: 960px) 31vw, (min-width: 624px) 46vw, calc(100vw - 48px)'
+
 const catalogueNumber = typeof index === 'number' ? String(index + 1).padStart(2, '0') : null
 ---
 
@@ -28,7 +34,7 @@ const catalogueNumber = typeof index === 'number' ? String(index + 1).padStart(2
         image ? (
           <img
             class="product-card__image"
-            src={image.url}
+            {...fluidImage(image, GRID_SIZES)}
             alt={image.altText ?? product.title}
             width={image.width ?? 600}
             height={image.height ?? 600}

@@ -2,11 +2,11 @@
 @use 'mixins' as mixins;
 
 :root {
-  // Below md the header carries a second row for the nav, so it is taller.
+  // Below lg the header carries a second row for the nav, so it is taller.
   // This has to live on :root, not on .site-header: `.has-fixed-header` pads
   // `main` by the same variable, and a value scoped to the header would leave
   // the first 40px of every mobile page underneath it.
-  --header-height: 116px;
+  --header-height: 122px;
   // The demo banner sits above the header (see DemoBanner.astro). Anything that
   // offsets for the top of the page uses --masthead-height, never the header
   // alone, or the banner would cover the first 36px of every page.
@@ -44,7 +44,8 @@
   --color-primary: #{vars.$copper};
   --color-border: #{vars.$rule};
 
-  @include mixins.respond-to(md) {
+  // The single-row header starts at lg (see Header.astro).
+  @include mixins.respond-to(lg) {
     --header-height: #{vars.$header-height};
   }
 }
@@ -56,6 +57,11 @@
 }
 
 html {
+  // 17px at the browser default rather than 16px. Every type size in the
+  // project is in rem and every spacing value is in px, so this one line scales
+  // the text sitewide without moving the layout. A percentage, not px, so a
+  // visitor's own browser font size still counts.
+  font-size: 106.25%;
   scroll-behavior: smooth;
   // Fraunces and Archivo both benefit; stops the paper ground looking chalky.
   -webkit-font-smoothing: antialiased;

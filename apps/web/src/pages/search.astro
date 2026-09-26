@@ -161,9 +161,10 @@ const title = query ? `Search: ${query}` : 'Search'
 
     &__bar {
       display: flex;
+      flex-wrap: wrap;
       align-items: baseline;
       justify-content: space-between;
-      gap: vars.$spacing-unit * 2;
+      gap: vars.$spacing-unit vars.$spacing-unit * 2;
       padding-block-end: vars.$spacing-unit;
       border-block-end: 1px solid var(--ink);
       margin-block-end: vars.$spacing-unit * 4;

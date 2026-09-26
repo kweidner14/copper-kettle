@@ -222,14 +222,21 @@ const weightLabel = formatWeight(
 
   .cart-row {
     display: grid;
-    grid-template-columns: 6rem 1fr auto;
+    // minmax(0, 1fr), not 1fr: the quantity form's min-content width otherwise
+    // pushes the price column off a small phone.
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
     gap: vars.$spacing-unit * 2;
+
+    @include mixins.respond-to(sm) {
+      grid-template-columns: 6rem minmax(0, 1fr) auto;
+    }
     padding-block: vars.$spacing-unit * 3;
     border-block-end: 1px solid var(--rule);
 
     &__image {
-      width: 6rem;
-      height: 7.5rem;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 5;
       object-fit: cover;
       background: var(--paper-sunk);
 
@@ -271,6 +278,7 @@ const weightLabel = formatWeight(
 
     &__form {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem;
       margin: 0;

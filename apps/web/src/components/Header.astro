@@ -91,7 +91,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     // Directly under the demo banner, which is fixed above it.
     inset-block-start: var(--banner-height);
     inset-inline: 0;
-    // Below md the nav drops to a second row rather than disappearing behind a
+    // Below lg the nav drops to a second row rather than disappearing behind a
     // hamburger. Four short links fit a phone width comfortably, and a menu
     // button would need script for something that does not need script.
     // The height itself is --header-height from :root, which `.has-fixed-header`
@@ -111,16 +111,18 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     &__inner {
       @include mixins.container;
       display: grid;
-      // Mobile: logo and cart on row one, nav spanning row two.
+      // Phones and tablets: logo and actions on row one, nav spanning row two.
+      // One row only from lg: at the current type size, logo, four nav labels,
+      // search and cart overflow a 768px tablet.
       grid-template-columns: 1fr auto;
       grid-template-areas:
         'logo cart'
         'nav nav';
       align-items: center;
-      gap: vars.$spacing-unit * 1.5 vars.$spacing-unit * 2;
+      gap: vars.$spacing-unit * 1.5;
       width: 100%;
 
-      @include mixins.respond-to(md) {
+      @include mixins.respond-to(lg) {
         grid-template-columns: auto 1fr auto;
         grid-template-areas: 'logo nav cart';
         gap: vars.$spacing-unit * 2;
@@ -162,19 +164,22 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       display: flex;
       flex-direction: column;
       font-family: vars.$font-display;
-      font-size: 1.25rem;
+      font-size: 1.0625rem;
       font-weight: 600;
       line-height: 1.05;
       letter-spacing: -0.015em;
+      // The wordmark is a single line or it is not a wordmark. On phones it
+      // shares row one with search and the cart, hence the smaller size there.
+      white-space: nowrap;
 
       @include mixins.respond-to(md) {
-        font-size: 1.375rem;
+        font-size: 1.3125rem;
       }
     }
 
     &__logo-sub {
       @include mixins.eyebrow;
-      font-size: 0.5625rem;
+      font-size: 0.625rem;
       letter-spacing: 0.22em;
       margin-block-start: 2px;
     }
@@ -184,7 +189,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       padding-block-start: vars.$spacing-unit * 1.5;
       border-block-start: 1px solid var(--rule);
 
-      @include mixins.respond-to(md) {
+      @include mixins.respond-to(lg) {
         justify-self: center;
         padding-block-start: 0;
         border-block-start: 0;
@@ -199,7 +204,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       padding: 0;
       gap: vars.$spacing-unit * 2;
 
-      @include mixins.respond-to(md) {
+      @include mixins.respond-to(lg) {
         justify-content: flex-start;
         gap: vars.$spacing-unit * 4;
       }
@@ -219,7 +224,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      padding: 0.5rem 0.75rem;
+      padding: 0.5rem 0.625rem;
       border: 1px solid var(--rule-strong);
       color: var(--ink);
       text-decoration: none;
@@ -231,6 +236,8 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
         color 0.2s ease;
 
       svg {
+        // Fixed, or a tight phone row squeezes the icon down to a dot.
+        flex: none;
         width: 0.875rem;
         height: 0.875rem;
       }
@@ -258,11 +265,41 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       }
     }
 
+    // Small phones (320px iPhone SE, 360px Android). Row one cannot hold the kettle
+    // mark, the wordmark, search and the cart at once, so the mark goes and the
+    // wordmark carries the brand; the nav labels tighten to fit four across.
+    @media (max-width: 374.98px) {
+      &__logo-mark {
+        display: none;
+      }
+
+      &__logo-text {
+        font-size: 0.9375rem;
+      }
+
+      &__nav-list {
+        gap: vars.$spacing-unit;
+      }
+
+      &__nav-link.site-header__nav-link {
+        font-size: 0.625rem;
+        letter-spacing: 0.08em;
+      }
+    }
+
     &__nav-link {
       @include mixins.eyebrow;
       @include mixins.rule-link(vars.$ink-soft);
+      // Four labels spread across a phone's width: a step smaller and a little
+      // tighter there so they fit, the full eyebrow size from md up.
       font-size: 0.6875rem;
+      letter-spacing: 0.12em;
       padding-block: 0.5rem;
+
+      @include mixins.respond-to(md) {
+        font-size: 0.75rem;
+        letter-spacing: 0.16em;
+      }
 
       &:hover,
       &:focus-visible {

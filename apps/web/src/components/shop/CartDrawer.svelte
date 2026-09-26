@@ -261,7 +261,11 @@
     display: inline-flex;
     align-items: baseline;
     gap: 0.4rem;
-    padding: 0.5rem 0.875rem;
+    padding: 0.5rem 0.75rem;
+
+    @include mixins.respond-to(md) {
+      padding: 0.5rem 0.875rem;
+    }
     border: 1px solid var(--rule-strong);
     border-radius: 0;
     background: transparent;
@@ -444,7 +448,7 @@
     &__options {
       margin: 0;
       @include mixins.eyebrow;
-      font-size: 0.625rem;
+      font-size: 0.6875rem;
     }
 
     &__controls {

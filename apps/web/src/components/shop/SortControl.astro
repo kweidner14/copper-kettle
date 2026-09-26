@@ -49,8 +49,22 @@ const { options, current, keep = {} } = Astro.props
     gap: 0.5rem;
     margin: 0;
 
+    // Spoken but not shown on phones, where the rail is too narrow for the
+    // count, the label and the longest option on one line. The select's own
+    // value already says what it is.
     &__label {
-      @include mixins.eyebrow;
+      @include mixins.visually-hidden;
+
+      @include mixins.respond-to(sm) {
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0;
+        overflow: visible;
+        clip: auto;
+        white-space: normal;
+        @include mixins.eyebrow;
+      }
     }
 
     &__select {

@@ -21,7 +21,15 @@ if (!product) {
 const { options, selectedVariant, selectedOptions } = resolveVariantSelection(product, Astro.url)
 
 const heroImage = selectedVariant?.image ?? product.featuredImage
-const galleryImages = product.images.nodes.filter((image) => image.url !== heroImage?.url)
+
+// Every image, hero included, so the visitor can always get back to the one
+// they started on. A variant image is normally also a product image; the
+// prepend only covers one that was attached to the variant alone.
+const productImages = product.images.nodes
+const galleryImages =
+  heroImage && !productImages.some((image) => image.url === heroImage.url)
+    ? [heroImage, ...productImages]
+    : productImages
 
 const weightLabel = formatWeight(selectedVariant ? variantWeightInGrams(selectedVariant) : null)
 
@@ -39,6 +47,29 @@ const description =
   product.seo?.description ||
   `${product.title} from Copper Kettle. ${formatMoney(product.priceRange.minVariantPrice)}.`
 
+// Product rich result. Describes the product, not the selected variant: every
+// variant URL canonicalises to the bare product URL, so the offer is the whole
+// price range rather than whichever variant happened to be selected.
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.title,
+  description,
+  url: canonicalUrl,
+  image: galleryImages.map((image) => image.url),
+  brand: product.vendor ? { '@type': 'Brand', name: product.vendor } : undefined,
+  offers: {
+    '@type': 'AggregateOffer',
+    priceCurrency: product.priceRange.minVariantPrice.currencyCode,
+    lowPrice: product.priceRange.minVariantPrice.amount,
+    highPrice: product.priceRange.maxVariantPrice.amount,
+    offerCount: product.variants.nodes.length,
+    availability: product.availableForSale
+      ? 'https://schema.org/InStock'
+      : 'https://schema.org/OutOfStock',
+  },
+}
+
 // Rendered as a spec table. Built here so the markup stays a simple loop and
 // empty rows never reach the DOM.
 const specs = [
@@ -54,6 +85,8 @@ const specs = [
 ---
 
 <Layout title={title} description={description} canonicalUrl={canonicalUrl} ogImage={heroImage?.url}>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
+
   <article class="product">
     <div class="product__inner">
       <nav class="product__breadcrumb" aria-label="Breadcrumb">
@@ -74,6 +107,7 @@ const specs = [
                   width={heroImage.width ?? 900}
                   height={heroImage.height ?? 900}
                   loading="eager"
+                  data-gallery-main
                 />
               ) : (
                 <div class="product__image product__image--placeholder" aria-hidden="true" />
@@ -81,21 +115,41 @@ const specs = [
             }
           </div>
 
+          {/* Each thumbnail is a link to the full-size image, so it still does
+              something without JavaScript. The script below upgrades a click
+              into swapping the main frame in place. */}
           {
-            galleryImages.length > 0 && (
-              <ul class="product__thumbs" role="list">
-                {galleryImages.map((image) => (
-                  <li>
-                    <img
-                      class="product__thumb"
-                      src={image.url}
-                      alt={image.altText ?? ''}
-                      width={image.width ?? 160}
-                      height={image.height ?? 160}
-                      loading="lazy"
-                    />
-                  </li>
-                ))}
+            heroImage && galleryImages.length > 1 && (
+              <ul class="product__thumbs" role="list" aria-label="Product images">
+                {galleryImages.map((image, index) => {
+                  const alt = image.altText ?? product.title
+                  const isCurrent = image.url === heroImage.url
+                  return (
+                    <li>
+                      <a
+                        class="product__thumb-link"
+                        href={image.url}
+                        aria-current={isCurrent ? 'true' : undefined}
+                        data-gallery-thumb
+                        data-alt={alt}
+                        data-width={image.width ?? 900}
+                        data-height={image.height ?? 900}
+                      >
+                        <img
+                          class="product__thumb"
+                          src={image.url}
+                          alt=""
+                          width={image.width ?? 160}
+                          height={image.height ?? 160}
+                          loading="lazy"
+                        />
+                        <span class="sr-only">
+                          Show image {index + 1} of {galleryImages.length}
+                        </span>
+                      </a>
+                    </li>
+                  )
+                })}
               </ul>
             )
           }
@@ -169,6 +223,29 @@ const specs = [
   </article>
 </Layout>
 
+<script>
+  // Swaps the main frame in place. Without this, each thumbnail is a plain link
+  // to the full-size image, which is a worse experience but not a broken one.
+  const main = document.querySelector<HTMLImageElement>('[data-gallery-main]')
+  const thumbs = document.querySelectorAll<HTMLAnchorElement>('[data-gallery-thumb]')
+
+  thumbs.forEach((thumb) => {
+    thumb.addEventListener('click', (event) => {
+      if (!main) return
+      event.preventDefault()
+
+      main.src = thumb.href
+      main.alt = thumb.dataset.alt ?? ''
+      // Kept in step with the source so the frame never reflows mid-swap.
+      if (thumb.dataset.width) main.width = Number(thumb.dataset.width)
+      if (thumb.dataset.height) main.height = Number(thumb.dataset.height)
+
+      thumbs.forEach((other) => other.removeAttribute('aria-current'))
+      thumb.setAttribute('aria-current', 'true')
+    })
+  })
+</script>
+
 <style lang="scss">
   @use '../../styles/mixins' as mixins;
   @use '../../styles/variables' as vars;
@@ -235,6 +312,23 @@ const specs = [
       margin: 0;
       padding: 0;
       list-style: none;
+    }
+
+    &__thumb-link {
+      display: block;
+      outline-offset: 2px;
+      // The current image is ringed rather than dimming the others, so every
+      // thumbnail stays legible.
+      box-shadow: 0 0 0 1px var(--rule);
+      transition: box-shadow 0.15s ease;
+
+      &:hover {
+        box-shadow: 0 0 0 1px var(--ink-soft);
+      }
+
+      &[aria-current='true'] {
+        box-shadow: 0 0 0 2px var(--copper);
+      }
     }
 
     &__thumb {

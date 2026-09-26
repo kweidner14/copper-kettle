@@ -23,15 +23,14 @@ const cart = await resolveCart(Astro)
 
 const ga4Id = import.meta.env.PUBLIC_GA4_ID ?? ''
 
-// Swap this for the schema.org type that actually matches the business
-// (LocalBusiness, MusicGroup, Organization, etc.) — Organization is a safe,
-// generic default for a starter template.
+// The business, not the page: `name` is the roaster on every route, where it
+// used to be whatever the current page was titled.
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: title,
+  name: 'Copper Kettle Coffee Roasters',
   url: siteUrl,
-  description,
+  logo: `${siteUrl}/favicon.svg`,
 }
 ---
 

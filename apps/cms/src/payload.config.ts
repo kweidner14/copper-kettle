@@ -9,8 +9,6 @@ import { s3Storage } from '@payloadcms/storage-s3'
 
 import { Users } from './collections/Users'
 import { Pages } from './collections/Pages'
-import { Posts } from './collections/Posts'
-import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { ContactSubmissions } from './collections/ContactSubmissions'
 import { NewsletterSubscribers } from './collections/NewsletterSubscribers'
@@ -45,7 +43,7 @@ export default buildConfig({
     user: Users.slug,
   },
   editor: lexicalEditor(),
-  collections: [Users, Pages, Posts, Categories, Media, ContactSubmissions, NewsletterSubscribers],
+  collections: [Users, Pages, Media, ContactSubmissions, NewsletterSubscribers],
   endpoints: [contactEndpoint, newsletterEndpoint],
   secret: process.env.PAYLOAD_SECRET ?? '',
   typescript: {

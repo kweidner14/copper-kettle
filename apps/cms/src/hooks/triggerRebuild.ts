@@ -1,20 +1,20 @@
 import type { CollectionAfterChangeHook } from 'payload'
 
 /**
- * Fires the static site host's deploy hook whenever a document is published.
- * The frontend is fully static (Astro SSG on Cloudflare Pages), so it has no
- * way to know content changed short of being told to rebuild.
+ * Fires the frontend host's deploy hook whenever a document is published.
+ * The storefront is SSR, but the pages that read Payload (home, About, Privacy)
+ * are prerendered, so they only pick up new content from a fresh build.
  *
- * Only fires on the transition into "published" to avoid a rebuild storm
- * while an editor is iterating on a draft.
+ * Fires on every publish, including republishing a page that was already live;
+ * checking only for the transition into "published" meant edits to a live page
+ * never reached the site. Draft saves carry _status "draft", so iterating on a
+ * draft still triggers nothing.
  */
-export const triggerRebuild: CollectionAfterChangeHook = async ({ doc, previousDoc, req }) => {
+export const triggerRebuild: CollectionAfterChangeHook = async ({ doc, req }) => {
   const webhookUrl = process.env.REBUILD_WEBHOOK_URL
   if (!webhookUrl) return doc
 
-  const wasPublished = previousDoc?._status === 'published'
-  const isPublished = doc?._status === 'published'
-  if (isPublished && !wasPublished) {
+  if (doc?._status === 'published') {
     try {
       await fetch(webhookUrl, { method: 'POST' })
     } catch (err) {

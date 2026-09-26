@@ -69,7 +69,7 @@ const { tone = 'light' } = Astro.props
 
       if (!res.ok) throw new Error('Request failed')
 
-      status.textContent = "You're on the list."
+      status.textContent = "You're on the list. It is a very quiet list."
       form.reset()
     } catch {
       status.textContent = 'Something went wrong. Please try again.'

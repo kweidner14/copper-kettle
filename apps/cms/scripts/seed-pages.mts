@@ -58,25 +58,31 @@ const root = (children: object[]) => ({
   },
 })
 
+// Tongue in cheek on purpose. The About page is where a real shop tells its
+// origin story; a demo store's honest origin story is that it is a demo.
 const aboutContent = root([
   paragraph(
-    'Copper Kettle started in a garage in 2019 with a five kilo roaster and a spreadsheet of failed batches. We still keep the spreadsheet.',
+    'Copper Kettle is not a real coffee roaster. There is no garage, no five kilo roaster and no spreadsheet of failed batches. There is a Shopify development store, a code editor and a frankly unreasonable amount of time spent on one checkout button.',
   ),
-  heading('h2', 'What we buy'),
+  heading('h2', 'What we sell'),
   paragraph(
-    'One or two lots at a time, from importers who will tell us the farm gate price without being asked twice. Small volumes mean we can turn a coffee down if the cup does not hold up, which is most of the argument for staying this size.',
+    'Nothing. The products are real in the sense that Shopify keeps them in a database, and fake in every sense that matters to your letterbox. Add as much as you like. The cart is real, the prices are real, and the coffee will never arrive.',
   ),
   heading('h2', 'How we roast'),
   paragraph(
-    'Everything is roasted the week it ships, in batches small enough that one person can taste every one. Nothing sits in a warehouse waiting for an order to arrive. The roast date goes on the bag because it is the number that actually matters.',
+    'We do not. We roast code. Product pages are rendered fresh on every request, so the stock count never lies to you, which is more integrity than most real roasters can claim about their tasting notes.',
   ),
-  heading('h2', 'Why the grind is on the bag'),
+  heading('h2', 'About that password'),
   paragraph(
-    'Most roasters split one coffee into nine listings. We would rather sell you the coffee and let you pick the roast, grind and size on the product itself. It is fewer decisions for us and fewer dead ends for you.',
+    'Yes, the store has a password. No, it is not a security feature. Shopify will not let a development store take its password page down, so we print it in the banner at the top of every page, which is roughly as secure as a sticky note on a monitor. It is coffee. It was always going to be coffee.',
+  ),
+  heading('h2', 'Why this exists'),
+  paragraph(
+    'So CopperFox Labs can show what a headless Shopify storefront looks like when somebody actually cares: fast pages, a cart that still works with JavaScript switched off, and a variant picker that does not need a framework to change a bag size. A fictional roaster was cheaper than a real client, and far less likely to ask for a carousel.',
   ),
   heading('h2', 'Visit'),
   paragraph(
-    'The roastery is open to anyone who wants to see a batch come off the drum. Bring a bag back and we will grind it for you.',
+    'Please do not. The roastery address on the contact page is made up. If it turns out to be real, we apologise to whoever lives there, and no, they will not grind your beans.',
   ),
 ])
 
@@ -113,9 +119,9 @@ const pages = [
     slug: 'about',
     content: aboutContent,
     seo: {
-      metaTitle: 'About Copper Kettle Coffee Roasters',
+      metaTitle: 'About Copper Kettle, which is not real',
       metaDescription:
-        'A small Ozarks roastery buying one lot at a time and roasting the week it ships.',
+        'Copper Kettle is a demo store built by CopperFox Labs. The coffee is fictional. The storefront is not.',
     },
   },
   {

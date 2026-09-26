@@ -47,10 +47,10 @@ const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
 
       if (!res.ok) throw new Error('Request failed')
 
-      status.textContent = "Thanks — we'll be in touch soon."
+      status.textContent = 'Sent. It is sitting in the CMS now, feeling important.'
       form.reset()
     } catch {
-      status.textContent = 'Something went wrong. Please try again or email us directly.'
+      status.textContent = 'Something went wrong. Please try again.'
     }
   })
 </script>

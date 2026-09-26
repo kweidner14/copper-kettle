@@ -24,20 +24,21 @@ const page = await getPage('home')
 const title = page?.seo?.metaTitle || 'Copper Kettle Coffee Roasters'
 const description =
   page?.seo?.metaDescription ||
-  'Small-batch coffee roasted to order in the Ozarks and shipped within a day of the roast.'
+  'A demo coffee store by CopperFox Labs. Real storefront, fictional coffee, no deliveries whatsoever.'
 
+// Tongue in cheek, like the About page: the store is a demo and says so.
 const steps = [
   {
-    title: 'Green, chosen in person',
-    body: 'We buy one or two lots at a time, from importers who will tell us the farm gate price without being asked twice.',
+    title: 'Beans, chosen by nobody',
+    body: 'Every product was typed into Shopify admin by someone who needed test data. The sourcing story is exactly as real as the farm.',
   },
   {
-    title: 'Roasted the week it ships',
-    body: 'Nothing sits in a warehouse waiting for an order. The roast date is on the bag because it is the number that matters.',
+    title: 'Roasted never, shipped never',
+    body: 'Nothing sits in a warehouse, because there is no warehouse. The roast date on the bag is as fictional as the bag.',
   },
   {
-    title: 'Ground the way you brew',
-    body: 'Whole bean, drip or espresso, chosen on the bag itself. We grind to order rather than stocking nine versions of the same coffee.',
+    title: 'Variants that actually work',
+    body: 'Whole bean, drip or espresso, picked with plain links and no framework. The grind is pretend. The variant picker is not.',
   },
 ]
 ---
@@ -48,18 +49,19 @@ const steps = [
   <section class="hero">
     <div class="hero__inner">
       <div class="hero__copy">
-        <p class="hero__eyebrow">Ozarks &middot; Small batch</p>
+        <p class="hero__eyebrow">Fictional &middot; Small batch</p>
         <h1 class="hero__title">
           Coffee worth<br />
-          <em>getting up for</em>
+          <em>pretending to&nbsp;buy</em>
         </h1>
         <p class="hero__lede">
-          We roast in batches small enough to taste every one, then ship inside a day.
-          No warehouse, no blend that has been sitting since spring.
+          Small-batch coffee from a roastery that does not exist, sold through a storefront
+          that very much does. Add it to your cart. Nobody will stop you, and nobody will ship
+          it.
         </p>
         <div class="hero__actions">
-          <a class="hero__cta" href="/products">Shop the range</a>
-          <a class="hero__link" href="/about">How we roast</a>
+          <a class="hero__cta" href="/products">Browse the pretend range</a>
+          <a class="hero__link" href="/about">How we don't roast</a>
         </div>
       </div>
 
@@ -92,7 +94,7 @@ const steps = [
        which is the print equivalent of the icon-and-heading row a theme uses. -->
   <section class="process">
     <div class="process__inner">
-      <h2 class="process__title">Three things we do differently</h2>
+      <h2 class="process__title">Three things we do differently, allegedly</h2>
 
       <ol class="process__list" role="list">
         {
@@ -115,7 +117,7 @@ const steps = [
       <section class="featured">
         <div class="featured__inner">
           <header class="featured__head">
-            <h2 class="featured__title">Also on the roster</h2>
+            <h2 class="featured__title">Also not for sale</h2>
             <a class="featured__all" href="/products">
               All coffee
             </a>
@@ -155,11 +157,11 @@ const steps = [
     <div class="statement__inner">
       <blockquote class="statement__quote">
         <p>
-          Freshness is not a marketing word. It is a date, and it is printed on every
-          bag we send.
+          Our coffee has never once gone stale. In fairness, it has also never
+          existed.
         </p>
       </blockquote>
-      <p class="statement__attribution">Copper Kettle, since 2019</p>
+      <p class="statement__attribution">Copper Kettle, since the last deploy</p>
     </div>
   </section>
 

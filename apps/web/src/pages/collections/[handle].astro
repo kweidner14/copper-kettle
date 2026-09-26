@@ -2,13 +2,23 @@
 import Layout from '../../layouts/Layout.astro'
 import Pagination from '../../components/shop/Pagination.astro'
 import ProductCard from '../../components/shop/ProductCard.astro'
+import SortControl from '../../components/shop/SortControl.astro'
 import { createShopifyApi, paginationFromUrl } from '../../lib/shopify/api'
+import { collectionSort, readSort, sortOptions } from '../../lib/shopify/sort'
 
 const { handle } = Astro.params
 
+// "featured" here is the merchant's own order for the collection.
+const options = sortOptions('catalog')
+const sort = readSort(Astro.url, options, 'featured')
+const sortParams: Record<string, string> = sort === 'featured' ? {} : { sort }
+
 const shopify = createShopifyApi(Astro)
 const collection = handle
-  ? await shopify.getCollection(handle, paginationFromUrl(Astro.url))
+  ? await shopify.getCollection(handle, {
+      ...paginationFromUrl(Astro.url),
+      ...collectionSort(sort),
+    })
   : null
 
 if (!collection) {
@@ -39,6 +49,13 @@ const description = collection.seo?.description || `${collection.title} from Cop
         }
       </header>
 
+      <div class="collection__bar">
+        <p class="collection__count">
+          {products.length} {products.length === 1 ? 'product' : 'products'}
+        </p>
+        <SortControl options={options} current={sort} />
+      </div>
+
       {
         products.length === 0 ? (
           <p class="collection__empty">Nothing in this collection yet.</p>
@@ -53,7 +70,11 @@ const description = collection.seo?.description || `${collection.title} from Cop
         )
       }
 
-      <Pagination pageInfo={collection.products.pageInfo} basePath={`/collections/${collection.handle}`} />
+      <Pagination
+        pageInfo={collection.products.pageInfo}
+        basePath={`/collections/${collection.handle}`}
+        params={sortParams}
+      />
     </div>
   </section>
 </Layout>
@@ -101,6 +122,23 @@ const description = collection.seo?.description || `${collection.title} from Cop
       color: var(--ink-soft);
     }
 
+    // The same count-and-sort rail as the catalogue page.
+    &__bar {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: vars.$spacing-unit * 2;
+      padding-block-end: vars.$spacing-unit;
+      border-block-end: 1px solid var(--ink);
+      margin-block-end: vars.$spacing-unit * 4;
+    }
+
+    &__count {
+      @include mixins.eyebrow;
+      margin: 0;
+      color: var(--ink);
+    }
+
     &__grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
@@ -108,8 +146,6 @@ const description = collection.seo?.description || `${collection.title} from Cop
       margin: 0;
       padding: 0;
       list-style: none;
-      padding-block-start: vars.$spacing-unit * 3;
-      border-block-start: 1px solid var(--ink);
     }
   }
 </style>

@@ -66,6 +66,17 @@ httpOnly cookie, and every change goes through `/api/cart/*` endpoints. The
 add-to-cart button is a real form post that works without JavaScript;
 `src/scripts/cart.ts` upgrades it to an in-place add that opens the drawer.
 
+**Search and sort.** `/search` runs the Storefront API's product search
+per request and has shareable URLs (`/search?q=press&sort=price-asc`). The
+catalogue and collection pages sort through the same short `?sort=` values,
+mapped to each API's own sort enum in `src/lib/shopify/sort.ts`. Both are
+plain GET forms, so they work without JavaScript, and pagination links carry
+the query and sort with the cursor.
+
+**Images.** Shopify's CDN resizes on a `width` parameter, so every image asks
+for the size it renders at, with a `srcset` and a `sizes` derived from its
+grid (`src/lib/shopify/image.ts`).
+
 **JavaScript.** One Svelte island, the cart drawer. The variant picker is
 server-rendered links, and the product gallery is links to the full-size
 images that a small script turns into an in-place swap.

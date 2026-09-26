@@ -1,0 +1,201 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Pagination from '../components/shop/Pagination.astro'
+import ProductCard from '../components/shop/ProductCard.astro'
+import SortControl from '../components/shop/SortControl.astro'
+import { createShopifyApi, paginationFromUrl } from '../lib/shopify/api'
+import { productSort, readSort, sortOptions } from '../lib/shopify/sort'
+
+// SSR: results come from the Storefront API's product search per request.
+// The term goes to `products(query:)` as-is, which searches title, type,
+// vendor and tags, and only ever returns products published to this channel.
+// It is trimmed and capped so a pasted essay does not become an API call.
+const MAX_QUERY_LENGTH = 100
+const query = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH)
+
+const options = sortOptions('search')
+const sort = readSort(Astro.url, options, 'relevance')
+
+const shopify = createShopifyApi(Astro)
+const results = query
+  ? await shopify.getProducts({ ...paginationFromUrl(Astro.url), ...productSort(sort), query })
+  : null
+
+// The term always rides along on pagination; the sort only when it is not the
+// default, which keeps shared result URLs short.
+const keepParams: Record<string, string> = { q: query }
+const pageParams: Record<string, string> =
+  sort === 'relevance' ? keepParams : { ...keepParams, sort }
+
+const count = results?.products.length ?? 0
+const title = query ? `Search: ${query}` : 'Search'
+---
+
+<Layout title={title} description="Search the Copper Kettle range." noindex>
+  <section class="search">
+    <div class="search__inner">
+      <header class="search__masthead">
+        <p class="search__eyebrow">Search</p>
+        <h1 class="search__title">
+          {query ? <>Results for &ldquo;{query}&rdquo;</> : 'Looking for something?'}
+        </h1>
+        {
+          !query && (
+            <p class="search__lede">
+              Search the whole pretend range. Everything you find is real enough to add to your
+              cart and fictional enough to never arrive.
+            </p>
+          )
+        }
+
+        <form class="search__form" method="get" action="/search" role="search">
+          <label class="sr-only" for="search-query">Search products</label>
+          <input
+            class="search__input"
+            id="search-query"
+            type="search"
+            name="q"
+            value={query}
+            placeholder="Try “blackout” or “press”"
+            maxlength={MAX_QUERY_LENGTH}
+            autocomplete="off"
+            autofocus={!query}
+          />
+          <button class="search__submit" type="submit">Search</button>
+        </form>
+      </header>
+
+      {
+        results && (
+          <>
+            <div class="search__bar">
+              <p class="search__count">
+                {count} {count === 1 ? 'result' : 'results'}
+              </p>
+              {count > 0 && <SortControl options={options} current={sort} keep={keepParams} />}
+            </div>
+
+            {count === 0 ? (
+              <div class="search__empty">
+                <p>
+                  Nothing matches &ldquo;{query}&rdquo;. In fairness, nothing here exists anyway.
+                  Try &ldquo;coffee&rdquo;, which is a safe bet in a coffee shop.
+                </p>
+                <p>
+                  <a class="search__all" href="/products">
+                    Browse everything instead
+                  </a>
+                </p>
+              </div>
+            ) : (
+              <ul class="search__grid" role="list">
+                {results.products.map((product, index) => (
+                  <li>
+                    <ProductCard product={product} eager={index < 3} />
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <Pagination pageInfo={results.pageInfo} basePath="/search" params={pageParams} />
+          </>
+        )
+      }
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  @use '../styles/variables' as vars;
+  @use '../styles/mixins' as mixins;
+
+  // Laid out like the catalogue page, so results read as the same grid with a
+  // search box on top rather than as a separate kind of page.
+  .search {
+    padding-block: vars.$spacing-unit * 7 vars.$spacing-unit * 10;
+
+    &__inner {
+      @include mixins.container;
+    }
+
+    &__masthead {
+      max-width: 46rem;
+      margin-block-end: vars.$spacing-unit * 6;
+    }
+
+    &__eyebrow {
+      @include mixins.eyebrow;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__title {
+      font-size: vars.$step-1;
+      margin: 0 0 vars.$spacing-unit * 2;
+      overflow-wrap: anywhere;
+    }
+
+    &__lede {
+      max-width: vars.$measure;
+      margin: 0 0 vars.$spacing-unit * 3;
+      color: var(--ink-soft);
+      font-size: 1.0625rem;
+    }
+
+    &__form {
+      display: flex;
+      gap: vars.$spacing-unit;
+      max-width: 32rem;
+      margin-block-start: vars.$spacing-unit * 3;
+    }
+
+    &__input {
+      @include mixins.field;
+      flex: 1;
+      min-width: 0;
+    }
+
+    &__submit {
+      @include mixins.button-solid;
+      flex-shrink: 0;
+    }
+
+    &__bar {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: vars.$spacing-unit * 2;
+      padding-block-end: vars.$spacing-unit;
+      border-block-end: 1px solid var(--ink);
+      margin-block-end: vars.$spacing-unit * 4;
+    }
+
+    &__count {
+      @include mixins.eyebrow;
+      margin: 0;
+      color: var(--ink);
+    }
+
+    &__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+      gap: vars.$spacing-unit * 5 vars.$spacing-unit * 4;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    &__empty {
+      max-width: vars.$measure;
+      color: var(--ink-soft);
+
+      p {
+        margin: 0 0 vars.$spacing-unit * 2;
+      }
+    }
+
+    &__all {
+      @include mixins.eyebrow;
+      @include mixins.rule-link(vars.$ink);
+    }
+  }
+</style>

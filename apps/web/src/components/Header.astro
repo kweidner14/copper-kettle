@@ -59,7 +59,21 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     {/* Wrapped so the header grid can place it: the trigger belongs to the
         Svelte island, and this component's scoped styles cannot reach it.
         The drawer and overlay are position:fixed, so nesting costs nothing. */}
-    <div class="site-header__cart">
+    <div class="site-header__actions">
+      {/* A link, not an overlay: /search is a real page with its own form, so
+          it works without JavaScript and results have a shareable URL. */}
+      <a
+        href="/search"
+        class:list={['site-header__search', isCurrent('/search') && 'is-current']}
+        aria-current={isCurrent('/search') ? 'page' : undefined}
+      >
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.5"></circle>
+          <path d="m10.5 10.5 3.5 3.5" stroke-linecap="round"></path>
+        </svg>
+        <span class="site-header__search-label">Search</span>
+      </a>
+
       {/* The one client island. Seeded with whatever the server knew: the real
           cart on SSR routes, null on prerendered ones. */}
       <CartDrawer client:load initialCart={cart} />
@@ -178,9 +192,57 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       }
     }
 
-    &__cart {
+    &__actions {
       grid-area: cart;
       justify-self: end;
+      display: flex;
+      align-items: stretch;
+      gap: vars.$spacing-unit;
+    }
+
+    // Matches the cart trigger beside it: same border, same small caps, same
+    // inverted hover. Icon only on phones, where the header row is tight.
+    &__search {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--rule-strong);
+      color: var(--ink);
+      text-decoration: none;
+      @include mixins.eyebrow;
+      color: var(--ink);
+      transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+
+      svg {
+        width: 0.875rem;
+        height: 0.875rem;
+      }
+
+      &:hover,
+      &:focus-visible,
+      &.is-current {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--paper);
+      }
+    }
+
+    &__search-label {
+      @include mixins.visually-hidden;
+
+      @include mixins.respond-to(md) {
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0;
+        overflow: visible;
+        clip: auto;
+        white-space: normal;
+      }
     }
 
     &__nav-link {

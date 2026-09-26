@@ -2,15 +2,22 @@
 import Layout from '../../layouts/Layout.astro'
 import Pagination from '../../components/shop/Pagination.astro'
 import ProductCard from '../../components/shop/ProductCard.astro'
+import SortControl from '../../components/shop/SortControl.astro'
 import { createShopifyApi, paginationFromUrl } from '../../lib/shopify/api'
+import { productSort, readSort, sortOptions } from '../../lib/shopify/sort'
 
 // SSR, not prerendered: the grid shows live sold-out state. A prerendered grid
 // would go stale the moment inventory moved, which is the one thing a store
 // cannot be wrong about.
+const options = sortOptions('catalog')
+const sort = readSort(Astro.url, options, 'featured')
+// The default order keeps the bare URL; only a chosen order goes in links.
+const sortParams: Record<string, string> = sort === 'featured' ? {} : { sort }
+
 const shopify = createShopifyApi(Astro)
 const { products, pageInfo } = await shopify.getProducts({
   ...paginationFromUrl(Astro.url),
-  sortKey: 'BEST_SELLING',
+  ...productSort(sort),
 })
 ---
 
@@ -33,7 +40,7 @@ const { products, pageInfo } = await shopify.getProducts({
         <p class="catalog__count">
           {products.length} {products.length === 1 ? 'product' : 'products'}
         </p>
-        <p class="catalog__sort">Sorted by popularity</p>
+        <SortControl options={options} current={sort} />
       </div>
 
       {
@@ -52,7 +59,7 @@ const { products, pageInfo } = await shopify.getProducts({
         )
       }
 
-      <Pagination pageInfo={pageInfo} basePath="/products" />
+      <Pagination pageInfo={pageInfo} basePath="/products" params={sortParams} />
     </div>
   </section>
 </Layout>
@@ -102,15 +109,10 @@ const { products, pageInfo } = await shopify.getProducts({
       margin-block-end: vars.$spacing-unit * 4;
     }
 
-    &__count,
-    &__sort {
+    &__count {
       @include mixins.eyebrow;
       margin: 0;
       color: var(--ink);
-    }
-
-    &__sort {
-      color: var(--ink-faint);
     }
 
     &__grid {

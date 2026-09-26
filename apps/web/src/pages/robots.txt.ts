@@ -14,6 +14,7 @@ export const GET: APIRoute = ({ site }) => {
     'Disallow: /cart',
     'Disallow: /checkout',
     'Disallow: /api/',
+    'Disallow: /search',
     '',
     `Sitemap: ${sitemapUrl}`,
     '',

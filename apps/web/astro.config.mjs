@@ -20,8 +20,8 @@ export default defineConfig({
   // is server-rendered links and forms.
   integrations: [
     sitemap({
-      // Per-visitor pages. robots.txt disallows them too.
-      filter: (page) => !/\/(cart|checkout)\/?$/.test(new URL(page).pathname),
+      // Per-visitor pages and search results. robots.txt disallows them too.
+      filter: (page) => !/\/(cart|checkout|search)\/?$/.test(new URL(page).pathname),
       // Product and collection pages are SSR with dynamic handles, which this
       // integration cannot enumerate. That endpoint lists them from the live
       // catalogue — see src/pages/sitemap-shop.xml.ts.

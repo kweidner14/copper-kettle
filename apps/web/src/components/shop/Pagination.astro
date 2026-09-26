@@ -5,21 +5,29 @@ interface Props {
   pageInfo: PageInfo
   /** Path to link back to, e.g. "/products" or "/collections/coffee". */
   basePath: string
+  /** Query parameters to carry onto every page, such as the sort and search term. */
+  params?: Record<string, string>
 }
 
-const { pageInfo, basePath } = Astro.props
+const { pageInfo, basePath, params = {} } = Astro.props
+
+// A cursor only means something within the order and query that produced it,
+// so every page link repeats them.
+const pageHref = (cursorParam: 'before' | 'after', cursor: string) => {
+  const search = new URLSearchParams(params)
+  search.set(cursorParam, cursor)
+  return `${basePath}?${search}`
+}
 
 // Cursor pagination has no page numbers to link — the API only ever hands back
 // the edges of the window it just returned.
 const previousHref =
   pageInfo.hasPreviousPage && pageInfo.startCursor
-    ? `${basePath}?before=${encodeURIComponent(pageInfo.startCursor)}`
+    ? pageHref('before', pageInfo.startCursor)
     : null
 
 const nextHref =
-  pageInfo.hasNextPage && pageInfo.endCursor
-    ? `${basePath}?after=${encodeURIComponent(pageInfo.endCursor)}`
-    : null
+  pageInfo.hasNextPage && pageInfo.endCursor ? pageHref('after', pageInfo.endCursor) : null
 ---
 
 {

@@ -73,13 +73,14 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 
   .site-header {
     position: fixed;
-    inset-block-start: 0;
+    // Directly under the demo banner, which is fixed above it.
+    inset-block-start: var(--banner-height);
     inset-inline: 0;
     // Below md the nav drops to a second row rather than disappearing behind a
     // hamburger. Four short links fit a phone width comfortably, and a menu
     // button would need script for something that does not need script.
     // The height itself is --header-height from :root, which `.has-fixed-header`
-    // also pads by, so the two can never drift apart.
+    // also pads by (via --masthead-height), so the two can never drift apart.
     height: var(--header-height);
     display: flex;
     align-items: center;

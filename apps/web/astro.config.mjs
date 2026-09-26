@@ -70,9 +70,10 @@ export default defineConfig({
       }),
       // Set only while the store is a Partner development store, which cannot
       // turn its password page off. When set, /checkout shows an unlock step
-      // before handing off; when empty, /checkout redirects straight to
-      // Shopify. Leaving this unset is what retires the workaround, so moving
-      // to a paid plan needs no code change.
+      // before handing off and the demo banner prints it; when empty, /checkout
+      // redirects straight to Shopify. The value lives in wrangler.jsonc, and
+      // deleting it there retires the workaround, so moving to a paid plan
+      // needs no code change.
       SHOPIFY_STORE_PASSWORD: envField.string({
         context: 'server',
         access: 'public',

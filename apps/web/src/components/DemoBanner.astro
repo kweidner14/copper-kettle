@@ -1,0 +1,100 @@
+---
+import { SHOPIFY_STORE_PASSWORD } from 'astro:env/server'
+
+// Copper Kettle is a fictional roaster. This strip says so on every page, says
+// who built it, and hands over the store password before the visitor meets the
+// Shopify gate at checkout rather than after.
+const studioUrl = 'https://copperfoxlabs.com'
+---
+
+<aside class="demo-banner" aria-label="About this demo">
+  <div class="demo-banner__inner">
+    <p class="demo-banner__note">
+      <span class="demo-banner__wide">Demo store built by</span>
+      <span class="demo-banner__narrow">Demo by</span>{' '}
+      <a class="demo-banner__link" href={studioUrl}>CopperFox Labs</a><span class="demo-banner__wide"
+        >. Copper Kettle is fictional and nothing here is for sale.</span
+      >
+    </p>
+
+    {
+      SHOPIFY_STORE_PASSWORD && (
+        <p class="demo-banner__password">
+          <span class="demo-banner__wide">Checkout password</span>
+          <span class="demo-banner__narrow">Password</span>
+          <code class="demo-banner__code">{SHOPIFY_STORE_PASSWORD}</code>
+        </p>
+      )
+    }
+  </div>
+</aside>
+
+<style lang="scss">
+  @use '../styles/variables' as vars;
+  @use '../styles/mixins' as mixins;
+
+  // Fixed above the masthead and a fixed height, so --banner-height can offset
+  // the header and the page by exactly this much. The copy is short enough to
+  // stay on one line at phone width; the long form only appears from md up.
+  .demo-banner {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: var(--banner-height);
+    display: flex;
+    align-items: center;
+    background: var(--roast);
+    color: var(--cream-soft);
+    font-size: 0.75rem;
+    line-height: 1;
+    z-index: 100;
+
+    &__inner {
+      @include mixins.container;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: vars.$spacing-unit * 2;
+      white-space: nowrap;
+    }
+
+    &__note,
+    &__password {
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &__password {
+      flex-shrink: 0;
+    }
+
+    &__link {
+      @include mixins.rule-link(vars.$cream);
+      color: var(--cream);
+    }
+
+    &__code {
+      margin-inline-start: 0.375rem;
+      padding: 0.2em 0.45em;
+      background: var(--roast-raised);
+      color: var(--cream);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.04em;
+    }
+
+    &__wide {
+      display: none;
+
+      @include mixins.respond-to(md) {
+        display: inline;
+      }
+    }
+
+    &__narrow {
+      @include mixins.respond-to(md) {
+        display: none;
+      }
+    }
+  }
+</style>

@@ -7,6 +7,11 @@
   // `main` by the same variable, and a value scoped to the header would leave
   // the first 40px of every mobile page underneath it.
   --header-height: 116px;
+  // The demo banner sits above the header (see DemoBanner.astro). Anything that
+  // offsets for the top of the page uses --masthead-height, never the header
+  // alone, or the banner would cover the first 36px of every page.
+  --banner-height: 36px;
+  --masthead-height: calc(var(--banner-height) + var(--header-height));
 
   --paper: #{vars.$paper};
   --paper-raised: #{vars.$paper-raised};
@@ -158,7 +163,7 @@ a {
 }
 
 .has-fixed-header {
-  padding-top: var(--header-height);
+  padding-top: var(--masthead-height);
 }
 
 [data-reveal] {

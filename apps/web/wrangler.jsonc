@@ -9,7 +9,11 @@
   // in this file — see .dev.vars.example.
   "vars": {
     "SHOPIFY_STORE_DOMAIN": "copper-kettle-im1ju9t1.myshopify.com",
-    "SHOPIFY_STOREFRONT_API_VERSION": "2026-04"
+    "SHOPIFY_STOREFRONT_API_VERSION": "2026-04",
+    // Not a secret: the demo banner and /checkout print it for every visitor.
+    // It must match the password page in Shopify admin (Online Store ->
+    // Preferences). Remove it once the store leaves the development plan.
+    "SHOPIFY_STORE_PASSWORD": "coffee"
   },
 
   "observability": { "enabled": true }

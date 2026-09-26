@@ -11,7 +11,8 @@ SHOPIFY_STOREFRONT_PRIVATE_TOKEN=paste-the-private-access-token-here
 # Optional local overrides for the values committed in wrangler.jsonc.
 # SHOPIFY_STORE_DOMAIN=copper-kettle-im1ju9t1.myshopify.com
 # SHOPIFY_STOREFRONT_API_VERSION=2026-04
-
-# Only for a Partner development store, which cannot turn its password page off.
-# When set, /checkout shows an unlock step first. Leave unset on a real store.
-SHOPIFY_STORE_PASSWORD=
+#
+# The development store's password page, shown in the demo banner and on
+# /checkout. Committed as "coffee" in wrangler.jsonc. Leave this commented out:
+# an empty value here would override it and hide the unlock step.
+# SHOPIFY_STORE_PASSWORD=coffee

@@ -21,10 +21,6 @@ const columns = [
   },
 ]
 
-const socialLinks = [
-  { href: 'https://instagram.com', label: 'Instagram' },
-  { href: 'https://twitter.com', label: 'Twitter' },
-]
 ---
 
 <footer class="site-footer">
@@ -35,18 +31,6 @@ const socialLinks = [
         Small-batch coffee roasted to order in the Ozarks. Every bag ships within a day of
         the roast, because freshness is the whole argument.
       </p>
-
-      <ul class="site-footer__social" role="list">
-        {
-          socialLinks.map((link) => (
-            <li>
-              <a href={link.href} class="site-footer__social-link" rel="noopener noreferrer">
-                {link.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
     </div>
 
     <nav class="site-footer__nav" aria-label="Footer">
@@ -81,6 +65,10 @@ const socialLinks = [
   <div class="site-footer__base">
     <div class="site-footer__base-inner">
       <p class="site-footer__legal">&copy; {year} Copper Kettle Coffee Roasters</p>
+      <p class="site-footer__legal">
+        A demo store by{' '}
+        <a href="https://copperfoxlabs.com" class="site-footer__legal-link">CopperFox Labs</a>
+      </p>
       <a href="/privacy-policy" class="site-footer__legal-link">Privacy policy</a>
     </div>
   </div>
@@ -121,27 +109,9 @@ const socialLinks = [
 
     &__blurb {
       max-width: 32ch;
-      margin: 0 0 vars.$spacing-unit * 3;
+      margin: 0;
       color: var(--cream-soft);
       font-size: 0.9375rem;
-    }
-
-    &__social {
-      display: flex;
-      gap: vars.$spacing-unit * 3;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    &__social-link {
-      @include mixins.eyebrow;
-      @include mixins.rule-link(vars.$cream-soft);
-
-      &:hover,
-      &:focus-visible {
-        color: var(--cream);
-      }
     }
 
     &__nav {

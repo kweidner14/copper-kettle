@@ -125,6 +125,23 @@ Lexical-to-HTML serializer, so the storefront does not need React.
 SQLite (`DATABASE_URI=file:...`) is for local development. Anywhere shared
 should use Postgres; see [apps/cms/README.md](apps/cms/README.md).
 
+## Checks
+
+`.github/workflows/ci.yml` runs on pushes to `main` and on pull requests:
+`astro check` and a production build for the storefront, ESLint and `tsc` for
+the CMS. The build needs the Storefront token as a repository secret named
+`SHOPIFY_STOREFRONT_PRIVATE_TOKEN`; without it (a pull request from a fork,
+say) the build step is skipped with a notice rather than failing.
+
+Locally:
+
+```bash
+npm run lint -w apps/web        # astro check
+npm run build -w apps/web
+npm run lint -w apps/cms        # eslint
+npm run typecheck -w apps/cms   # tsc
+```
+
 ## Deploying
 
 Not deployed yet. The intended shape is the storefront on Cloudflare

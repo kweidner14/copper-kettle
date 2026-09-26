@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch makes the running check moot.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Storefront
+    runs-on: ubuntu-latest
+    env:
+      # Repository secret (Settings -> Secrets and variables -> Actions). The
+      # build prerenders the home page from the live catalogue, so it needs the
+      # Storefront token; without it the build step is skipped, not failed,
+      # which keeps pull requests from forks (which get no secrets) green.
+      SHOPIFY_STOREFRONT_PRIVATE_TOKEN: ${{ secrets.SHOPIFY_STOREFRONT_PRIVATE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # astro:env reads secrets from .dev.vars at build time on this adapter,
+      # the same file local development uses. Everything non-secret comes from
+      # wrangler.jsonc. Payload is not reachable from CI; the content pages
+      # build without it and log a warning each.
+      - name: Write .dev.vars
+        if: env.SHOPIFY_STOREFRONT_PRIVATE_TOKEN != ''
+        run: printf 'SHOPIFY_STOREFRONT_PRIVATE_TOKEN=%s\n' "$SHOPIFY_STOREFRONT_PRIVATE_TOKEN" > apps/web/.dev.vars
+
+      - name: Type-check
+        run: npm run lint -w apps/web
+
+      - name: Build
+        if: env.SHOPIFY_STOREFRONT_PRIVATE_TOKEN != ''
+        run: npm run build -w apps/web
+
+      - name: Build skipped
+        if: env.SHOPIFY_STOREFRONT_PRIVATE_TOKEN == ''
+        run: echo "::notice::SHOPIFY_STOREFRONT_PRIVATE_TOKEN is not set, so the storefront build was skipped."
+
+  cms:
+    name: CMS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint -w apps/cms
+
+      - name: Type-check
+        run: npm run typecheck -w apps/cms

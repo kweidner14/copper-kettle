@@ -136,12 +136,20 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       justify-self: start;
     }
 
+    // Stepped up once the banner and the search button arrived: at its first
+    // size the wordmark read as the smallest thing in the masthead. Phones get
+    // a smaller step because the logo shares row one with search and the cart.
     &__logo-mark {
       display: grid;
       place-items: center;
-      width: 1.75rem;
-      height: 1.75rem;
+      width: 2rem;
+      height: 2rem;
       color: var(--copper);
+
+      @include mixins.respond-to(md) {
+        width: 2.25rem;
+        height: 2.25rem;
+      }
 
       svg {
         width: 100%;
@@ -153,15 +161,19 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       display: flex;
       flex-direction: column;
       font-family: vars.$font-display;
-      font-size: 1.0625rem;
+      font-size: 1.25rem;
       font-weight: 600;
       line-height: 1.05;
       letter-spacing: -0.015em;
+
+      @include mixins.respond-to(md) {
+        font-size: 1.375rem;
+      }
     }
 
     &__logo-sub {
       @include mixins.eyebrow;
-      font-size: 0.5rem;
+      font-size: 0.5625rem;
       letter-spacing: 0.22em;
       margin-block-start: 2px;
     }

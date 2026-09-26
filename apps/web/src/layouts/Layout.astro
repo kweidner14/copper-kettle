@@ -2,6 +2,7 @@
 import DemoBanner from '../components/DemoBanner.astro'
 import Header from '../components/Header.astro'
 import { resolveCart } from '../lib/shopify/cart'
+import { publicPath } from '../lib/url'
 import Footer from '../components/Footer.astro'
 import '../styles/global.scss'
 
@@ -16,7 +17,10 @@ export interface Props {
 const { title, description, canonicalUrl, ogImage, noindex = false } = Astro.props
 
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? ''
-const canonical = canonicalUrl ?? `${siteUrl}${Astro.url.pathname}`
+// Without a trailing slash or ".html", matching the sitemap and every internal
+// link, so /products and /products/ never count as two pages.
+const pathname = publicPath(Astro.url.pathname)
+const canonical = canonicalUrl ?? `${siteUrl}${pathname}`
 const resolvedOgImage = ogImage ?? `${siteUrl}/og-default.png`
 // Resolved here rather than in middleware (see resolveCart). Memoised per
 // request, so a page that also needs the cart does not refetch it.

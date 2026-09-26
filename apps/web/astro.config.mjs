@@ -15,6 +15,15 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare(),
 
+  // One URL per page, without a trailing slash, which is how every link on the
+  // site is written. The default "directory" format builds about/index.html,
+  // which a static host serves at /about/ and reaches from /about by redirect,
+  // so the sitemap listed /about/ while the canonical tag said /about. "file"
+  // builds about.html, served at /about directly.
+  build: {
+    format: 'file',
+  },
+
   // Svelte is the only client framework in the project, and it exists for one
   // component: the cart drawer. Everything else — including the variant picker —
   // is server-rendered links and forms.

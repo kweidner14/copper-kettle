@@ -1,6 +1,7 @@
 ---
 import CartDrawer from './shop/CartDrawer.svelte'
 import type { Cart } from '../lib/shopify/cart'
+import { publicPath } from '../lib/url'
 
 interface Props {
   cart: Cart | null
@@ -17,7 +18,7 @@ const navItems = [
 
 // Marks the section the visitor is in, including nested routes like
 // /products/<handle>, so the header always says where you are.
-const path = Astro.url.pathname
+const path = publicPath(Astro.url.pathname)
 const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 ---
 

@@ -54,7 +54,7 @@ const itemCount = cart.totalQuantity
           <div>
             <h2 class="handoff__step-title">Unlock the store</h2>
             <p class="handoff__step-copy">
-              Opens in a new tab. The password is
+              Opens in a new tab. The password is{' '}
               <code class="handoff__password">{SHOPIFY_STORE_PASSWORD}</code>. You only
               need to do this once per browser.
             </p>
@@ -74,8 +74,8 @@ const itemCount = cart.totalQuantity
           <div>
             <h2 class="handoff__step-title">Come back and continue</h2>
             <p class="handoff__step-copy">
-              Close that tab once it lets you in, then continue below. Your
-              {itemCount === 1 ? 'item' : `${itemCount} items`} and the
+              Close that tab once it lets you in, then continue below. Your{' '}
+              {itemCount === 1 ? 'item' : `${itemCount} items`} and the{' '}
               {formatMoney(cart.cost.subtotalAmount)} subtotal carry straight through.
             </p>
             {/* The real Storefront API checkout URL. Nothing about this link is

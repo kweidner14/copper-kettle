@@ -1,8 +1,8 @@
 {
-  "name": "astro-payload-starter",
+  "name": "copper-kettle",
   "private": true,
   "version": "0.1.0",
-  "description": "Starter monorepo: Astro (SSG) frontend + Payload CMS 3.x backend (Postgres + S3-compatible storage).",
+  "description": "Copper Kettle: a headless Shopify demo store on Astro (SSR, Cloudflare), with Payload CMS 3 for content pages.",
   "workspaces": [
     "apps/*"
   ],

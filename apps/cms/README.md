@@ -7,9 +7,7 @@ public-facing frontend here, that's `apps/web` (Astro).
 ## Collections
 
 - **Users** — CMS editors/admins (Payload's built-in auth).
-- **Pages** — flat pages (About, Services, Privacy, etc.) with slug + Lexical rich text + SEO group.
-- **Posts** — blog posts with category, featured image, excerpt, Lexical rich text + SEO group.
-- **Categories** — simple taxonomy for Posts.
+- **Pages** — flat pages (About, Privacy Policy) with slug + Lexical rich text + SEO group.
 - **Media** — uploads collection, backed by S3-compatible storage (see below), not local disk.
 - **ContactSubmissions** / **NewsletterSubscribers** — write-only via the custom endpoints below; not writable through the generic REST API directly.
 
@@ -28,10 +26,10 @@ rather not store submissions in Payload at all.
 
 ## Rebuild-on-publish
 
-Since the frontend is a fully static Astro build, it has no way to know
-content changed. `src/hooks/triggerRebuild.ts` is an `afterChange` hook on
-Pages and Posts that POSTs to `REBUILD_WEBHOOK_URL` (e.g. a Cloudflare
-Pages deploy hook) the moment a document transitions into `published`.
+The storefront pages that read Payload are prerendered, so they have no way to
+know content changed. `src/hooks/triggerRebuild.ts` is an `afterChange` hook on
+Pages that POSTs to `REBUILD_WEBHOOK_URL` (e.g. a Cloudflare deploy hook)
+every time a document is published, including republishing a live page.
 
 If you'd rather batch rebuilds on a schedule instead of firing one per
 publish, replace this with a Payload [Jobs Queue](https://payloadcms.com/docs/jobs-queue/overview)
@@ -51,6 +49,7 @@ S3-compatible provider without touching collection code.
 cp .env.example .env   # fill in DATABASE_URI, PAYLOAD_SECRET, S3_*, etc.
 npm install
 npm run dev             # http://localhost:3000/admin
+npm run seed:pages      # publishes the About and Privacy Policy pages
 ```
 
 First run against a fresh Postgres database will prompt you to create the

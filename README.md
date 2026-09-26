@@ -1,83 +1,122 @@
-# Astro + Payload CMS 3 Starter
+# Copper Kettle
 
-A minimal, opinionated starter/reference architecture — not a finished
-production site. Two independently deployable apps in one repo:
+A headless Shopify storefront for a fictional coffee roaster, built by
+[CopperFox Labs](https://copperfoxlabs.com) as a demo. Nothing here is for sale:
+the store behind it is a Shopify development store, which can only place test
+orders.
 
 ```
 apps/
-  web/   Astro frontend — static site generation (SSG), deployed to Cloudflare Pages
-  cms/   Payload CMS 3.x backend (Next.js host) — Postgres + S3/R2 media, deployed to Railway (or similar)
+  web/   Astro 7 storefront: SSR on Cloudflare Workers, Shopify Storefront API
+  cms/   Payload CMS 3 (Next.js host): the About and Privacy pages, plus the
+         contact and newsletter form endpoints
 ```
 
-The two apps talk over Payload's REST API only. `apps/web` fetches content
-at **build time**; there is no runtime dependency between them beyond the
-rebuild webhook described below.
+Shopify owns the catalogue, the cart and checkout. Payload owns the editorial
+pages. The storefront runs without Payload; the content pages just render
+without their CMS copy.
 
-## Why two separate deploys
+## Running it locally
 
-The frontend is fully static — no server, no SSR, just files on a CDN. That
-means editors publishing content in Payload doesn't do anything on its own;
-`apps/cms` has an `afterChange` hook (`apps/cms/src/hooks/triggerRebuild.ts`)
-that calls a deploy webhook (e.g. a Cloudflare Pages deploy hook) the moment
-a Page or Post is published, which kicks off a fresh Astro build.
-
-## Getting started
+Needs Node 18.20+ and access to the Copper Kettle development store's
+Storefront API token.
 
 ```bash
 npm install
-
-# Terminal 1 — CMS
-cd apps/cms && cp .env.example .env   # fill in DATABASE_URI, PAYLOAD_SECRET, S3_*
-npm run dev                            # http://localhost:3000/admin
-
-# Terminal 2 — frontend
-cd apps/web && cp .env.example .env    # PAYLOAD_API_URL=http://localhost:3000
-npm run dev                             # http://localhost:4321
 ```
 
-Create your first admin user at `/admin`, then add Pages with slugs `home`,
-`about`, `services`, `privacy-policy` (the frontend pages fall back to a
-placeholder notice if a given slug doesn't exist yet, so nothing crashes on
-a fresh install).
+**CMS** (optional, but the About and Privacy pages are empty without it):
 
-See [apps/cms/README.md](apps/cms/README.md) and the conventions below for
-the rest.
+```bash
+cd apps/cms
+cp .env.example .env        # set DATABASE_URI=file:./dev.db for SQLite, and a PAYLOAD_SECRET
+npm run dev                 # http://localhost:3000/admin
+npm run seed:pages          # publishes the About and Privacy Policy pages
+```
 
-## Conventions this starter follows
+Add `http://localhost:4321` to `CORS_ORIGINS` so the storefront's forms can
+post to it.
 
-- **SCSS + BEM** — see `apps/web/src/styles/_mixins.scss` for the
-  `respond-to(sm|md|lg|xl)` breakpoint mixin; component styles live
-  co-located in each `.astro` file.
-- **`lib/api.ts`** — the only place that talks to Payload's REST API from
-  the frontend; every fetch uses Payload's `depth` param to control how far
-  relationships/uploads get populated.
-- **`RichText.astro`** — hand-rolled Lexical → HTML serializer (headings,
-  lists, links, including resolving Payload's `linkType: internal` nodes via
-  `fields.doc` rather than the possibly-stale `fields.url`). Payload doesn't
-  ship an Astro renderer, so this exists instead of pulling React in.
-- **Reusable `seo` field group** on every content collection
-  (`apps/cms/src/fields/seo.ts`) — metaTitle, metaDescription, canonicalUrl,
-  robots index/follow, OG/Twitter overrides.
-- **GA4 loads lazily** on first user interaction (scroll/mousemove/keydown/
-  touch), never on initial page load, to protect LCP — see
-  `apps/web/src/scripts/analytics.ts`.
-- **Scroll-reveal** via `[data-reveal]` + IntersectionObserver
-  (`apps/web/src/scripts/reveal.ts`), opacity/transform only (no CLS), and
-  fully disabled under `prefers-reduced-motion`.
-- **Accessibility basics**: skip link, `.sr-only` utility, `aria-hidden` on
-  decorative SVGs, one `<h1>` per page.
+**Storefront**:
+
+```bash
+cd apps/web
+cp .dev.vars.example .dev.vars   # paste the Storefront private access token
+cp .env.example .env             # PAYLOAD_API_URL=http://localhost:3000
+npm run dev                      # http://localhost:4321
+```
+
+## How the storefront works
+
+**Rendering.** `output: 'server'`, so product, collection and cart pages are
+rendered per request and stock is never stale. The home, About, Privacy and
+Contact pages opt back into prerendering because they change on a publishing
+schedule, not per visitor.
+
+**Shopify access.** Everything goes through the Storefront API with the
+*private* token, from server code only. The token is declared
+`access: 'secret'` in `astro:env`, so importing it into client code fails the
+build. Every call carries `Shopify-Storefront-Buyer-IP` (see
+`src/lib/shopify/api.ts`), which is what keeps server-side traffic from being
+throttled as a single buyer. Types come from `npm run codegen` against the
+`#graphql` documents in `src/lib/shopify/queries`.
+
+**Cart.** The cart lives on Shopify. The site keeps only its id, in an
+httpOnly cookie, and every change goes through `/api/cart/*` endpoints. The
+add-to-cart button is a real form post that works without JavaScript;
+`src/scripts/cart.ts` upgrades it to an in-place add that opens the drawer.
+
+**JavaScript.** One Svelte island, the cart drawer. The variant picker is
+server-rendered links, and the product gallery is links to the full-size
+images that a small script turns into an in-place swap.
+
+**Checkout.** A redirect to the cart's `checkoutUrl`, through `/checkout`. A
+Partner development store cannot turn its password page off, and that page
+swallows the first checkout request, so `/checkout` asks the visitor to unlock
+the store first. The password (`coffee`) is set in `wrangler.jsonc` and printed
+in the demo banner. Deleting `SHOPIFY_STORE_PASSWORD` there turns `/checkout`
+into a straight redirect, with no code change.
+
+**SEO.** Canonical URLs on every page (variant URLs canonicalise to the bare
+product), Open Graph with a default card image, Product structured data on
+product pages, a generated `robots.txt`, and a sitemap index that includes a
+live `sitemap-shop.xml` for products and collections.
+
+**Front end conventions.** SCSS with BEM, design tokens in
+`src/styles/_variables.scss`, the `respond-to(sm|md|lg|xl)` mixin for
+breakpoints. GA4 loads on first interaction rather than page load, and only if
+`PUBLIC_GA4_ID` is set. Scroll-reveal animation is off under
+`prefers-reduced-motion`.
+
+## Configuration
+
+| Where | What |
+| --- | --- |
+| `apps/web/wrangler.jsonc` | Store domain, API version, store password. Committed, not secret. |
+| `apps/web/.dev.vars` | `SHOPIFY_STOREFRONT_PRIVATE_TOKEN` for local dev. Gitignored. |
+| `apps/web/.env` | `PAYLOAD_API_URL`, `PUBLIC_PAYLOAD_API_URL`, `PUBLIC_SITE_URL`, `PUBLIC_GA4_ID`. |
+| `apps/cms/.env` | Database, Payload secret, CORS origins, optional R2 media storage and rebuild webhook. |
+
+## The CMS
+
+Collections: **Pages** (slug, Lexical rich text, SEO group, drafts),
+**Media**, **Users**, and the write-only **ContactSubmissions** and
+**NewsletterSubscribers**, which are filled by `POST /api/contact` and
+`POST /api/newsletter`.
+
+`src/hooks/triggerRebuild.ts` calls `REBUILD_WEBHOOK_URL` whenever a Page is
+published, because the pages that read Payload are prerendered and only pick
+up edits from a fresh build.
+
+Rich text is rendered by `apps/web/src/components/RichText.astro`, a small
+Lexical-to-HTML serializer, so the storefront does not need React.
+
+SQLite (`DATABASE_URI=file:...`) is for local development. Anywhere shared
+should use Postgres; see [apps/cms/README.md](apps/cms/README.md).
 
 ## Deploying
 
-- **Frontend (Cloudflare Pages)**: build command `npm run build --workspace=apps/web`,
-  output directory `apps/web/dist`. Set `PAYLOAD_API_URL`, `PUBLIC_SITE_URL`,
-  `PUBLIC_PAYLOAD_API_URL`, and `PUBLIC_GA4_ID` in the Pages project's
-  environment variables. Create a Pages deploy hook and put its URL in the
-  CMS's `REBUILD_WEBHOOK_URL`.
-- **Backend (Railway)**: see [apps/cms/README.md](apps/cms/README.md).
-
-## Explicitly out of scope
-
-Authentication flows beyond Payload's built-in CMS-user auth, e-commerce,
-and anything not listed above — this is a starting point, add what your
-project actually needs on top of it.
+Not deployed yet. The intended shape is the storefront on Cloudflare
+(`npm run build -w apps/web`, token set with
+`npx wrangler secret put SHOPIFY_STOREFRONT_PRIVATE_TOKEN`) and the CMS on
+Railway with Postgres and R2.

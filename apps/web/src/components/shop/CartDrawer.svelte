@@ -2,6 +2,7 @@
   import type { Cart } from '../../lib/shopify/cart'
   import { fixedImage } from '../../lib/shopify/image'
   import { formatMoney } from '../../lib/shopify/money'
+  import { variantLabel } from '../../lib/shopify/variants'
   import { formatWeight, totalGrams } from '../../lib/shopify/weight'
 
   /**
@@ -182,9 +183,9 @@
                 {line.merchandise.product.title}
               </a>
 
-              {#if line.merchandise.selectedOptions.length > 0}
+              {#if variantLabel(line.merchandise.selectedOptions)}
                 <p class="cart-line__options">
-                  {line.merchandise.selectedOptions.map((o) => o.value).join(' / ')}
+                  {variantLabel(line.merchandise.selectedOptions)}
                 </p>
               {/if}
 

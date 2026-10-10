@@ -210,7 +210,7 @@ const specs = [
               <span class="product__stock-dot" aria-hidden="true"></span>
               {!inStock && 'Sold out'}
               {inStock && lowStock && `Only ${remaining} left`}
-              {inStock && !lowStock && 'In stock, ships tomorrow'}
+              {inStock && !lowStock && 'In stock, ships never'}
             </p>
 
             {/* A real form post, not a JS-only button: with no JavaScript this

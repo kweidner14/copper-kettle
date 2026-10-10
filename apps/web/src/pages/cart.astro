@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro'
 import { fixedImage } from '../lib/shopify/image'
 import { formatMoney } from '../lib/shopify/money'
+import { variantLabel } from '../lib/shopify/variants'
 import { resolveCart } from '../lib/shopify/cart'
 import { formatWeight, totalGrams } from '../lib/shopify/weight'
 
@@ -71,11 +72,9 @@ const weightLabel = formatWeight(
                       {line.merchandise.product.title}
                     </a>
 
-                    {line.merchandise.selectedOptions.length > 0 && (
+                    {variantLabel(line.merchandise.selectedOptions) && (
                       <p class="cart-row__options">
-                        {line.merchandise.selectedOptions
-                          .map((option) => option.value)
-                          .join(' / ')}
+                        {variantLabel(line.merchandise.selectedOptions)}
                       </p>
                     )}
 

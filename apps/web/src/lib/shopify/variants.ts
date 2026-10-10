@@ -24,6 +24,20 @@ export interface SelectedOption {
   value: string
 }
 
+/**
+ * The selection as a line of text for a cart line ("Medium / Whole bean"), or
+ * an empty string for a product with no real options. Without the filter, a
+ * single-variant product printed Shopify's placeholder, "Default Title".
+ */
+export function variantLabel(selectedOptions: SelectedOption[]): string {
+  return selectedOptions
+    .filter(
+      (option) => !(option.name === DEFAULT_OPTION_NAME && option.value === DEFAULT_OPTION_VALUE),
+    )
+    .map((option) => option.value)
+    .join(' / ')
+}
+
 export interface OptionValueState {
   id: string
   value: string

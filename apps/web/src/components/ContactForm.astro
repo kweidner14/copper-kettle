@@ -2,15 +2,39 @@
 const apiUrl = import.meta.env.PUBLIC_PAYLOAD_API_URL ?? 'http://localhost:3000'
 ---
 
+{/* Name, email and a submit button is also the shape of a sign-up form, so
+    password managers offered to save a "login" here. The autocomplete tokens
+    say what the fields really are, so browser autofill still fills them, and
+    the ignore attributes (1Password, LastPass, Bitwarden) stop the prompt. */}
 <form class="contact-form" id="contact-form" data-endpoint={`${apiUrl}/api/contact`}>
   <div class="contact-form__field">
     <label class="contact-form__label" for="contact-name">Name</label>
-    <input class="contact-form__input" id="contact-name" name="name" type="text" required />
+    <input
+      class="contact-form__input"
+      id="contact-name"
+      name="name"
+      type="text"
+      autocomplete="name"
+      data-1p-ignore
+      data-lpignore="true"
+      data-bwignore
+      required
+    />
   </div>
 
   <div class="contact-form__field">
     <label class="contact-form__label" for="contact-email">Email</label>
-    <input class="contact-form__input" id="contact-email" name="email" type="email" required />
+    <input
+      class="contact-form__input"
+      id="contact-email"
+      name="email"
+      type="email"
+      autocomplete="email"
+      data-1p-ignore
+      data-lpignore="true"
+      data-bwignore
+      required
+    />
   </div>
 
   <div class="contact-form__field">

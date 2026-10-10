@@ -62,7 +62,7 @@ const visit: Row[] = [
 const build: Row[] = [
   { label: 'Storefront API query', value: `${Math.round(apiMs)} ms` },
   { label: 'Products fetched', value: String(productCount) },
-  { label: 'CMS read', value: cmsMs === null ? 'offline, skipped' : `${Math.round(cmsMs)} ms` },
+  { label: 'CMS read', value: cmsMs === null ? 'offline, bundled copy' : `${Math.round(cmsMs)} ms` },
   { label: 'Printed', value: builtLabel },
 ]
 

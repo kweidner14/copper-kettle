@@ -126,6 +126,10 @@ Collections: **Pages** (slug, Lexical rich text, SEO group, drafts),
 published, because the pages that read Payload are prerendered and only pick
 up edits from a fresh build.
 
+The About and Privacy copy lives in `content/pages.json`. `npm run seed:pages`
+publishes it to Payload, and the storefront falls back to the same file when
+Payload is unreachable at build time, so those pages are never empty.
+
 Rich text is rendered by `apps/web/src/components/RichText.astro`, a small
 Lexical-to-HTML serializer, so the storefront does not need React.
 

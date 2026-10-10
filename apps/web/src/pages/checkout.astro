@@ -1,5 +1,5 @@
 ---
-import { SHOPIFY_STORE_DOMAIN, SHOPIFY_STORE_PASSWORD } from 'astro:env/server'
+import { SHOPIFY_STORE_DOMAIN, SHOPIFY_STORE_PASSWORD, SHOPIFY_TEST_CARD } from 'astro:env/server'
 import Layout from '../layouts/Layout.astro'
 import { formatMoney } from '../lib/shopify/money'
 import { resolveCart } from '../lib/shopify/cart'
@@ -36,16 +36,17 @@ const unlockUrl = `https://${SHOPIFY_STORE_DOMAIN}/password`
 const itemCount = cart.totalQuantity
 ---
 
-<Layout title="Checkout" description="Continue to secure checkout." noindex>
+<Layout title="Checkout" description="One step before a checkout that ships nothing." noindex>
   <section class="handoff">
     <div class="handoff__inner">
-      <p class="handoff__eyebrow">Demo store</p>
+      <p class="handoff__eyebrow">Almost there, in a sense</p>
       <h1 class="handoff__title">One step before checkout</h1>
 
       <p class="handoff__lede">
-        This storefront runs on a Shopify development store, and Shopify does not allow
-        those to switch off their password page. Checkout itself works normally once the
-        store is unlocked.
+        This store runs on a Shopify development store, and Shopify will not let those
+        take their password page down. So there is a password, it is printed in the banner
+        at the top of every page, and it guards nothing. Checkout works normally once you
+        are past it. The coffee still will not arrive.
       </p>
 
       <ol class="handoff__steps">
@@ -78,6 +79,15 @@ const itemCount = cart.totalQuantity
               {itemCount === 1 ? 'item' : `${itemCount} items`} and the{' '}
               {formatMoney(cart.cost.subtotalAmount)} subtotal carry straight through.
             </p>
+            {
+              SHOPIFY_TEST_CARD && (
+                <p class="handoff__step-copy">
+                  Payments are in test mode, so no real card is charged or even accepted.
+                  Use card number <code class="handoff__password">{SHOPIFY_TEST_CARD}</code>{' '}
+                  with any name, any future expiry date and any security code.
+                </p>
+              )
+            }
             {/* The real Storefront API checkout URL. Nothing about this link is
                 special; it simply needs the unlock cookie to already exist. */}
             <a class="handoff__continue" href={cart.checkoutUrl} rel="nofollow">

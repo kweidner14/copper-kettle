@@ -14,6 +14,9 @@
     // It must match the password page in Shopify admin (Online Store ->
     // Preferences). Remove it once the store leaves the development plan.
     "SHOPIFY_STORE_PASSWORD": "coffee"
+    // Add "SHOPIFY_TEST_CARD": "1" here once Shopify admin -> Settings ->
+    // Payments has the Bogus Gateway (test mode) on. /checkout then tells
+    // visitors which card to use.
   },
 
   "observability": { "enabled": true }

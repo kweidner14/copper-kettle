@@ -89,6 +89,16 @@ export default defineConfig({
         optional: true,
         default: '',
       }),
+      // The card number for Shopify's test gateway ("Bogus Gateway" uses 1).
+      // Shown on /checkout only when set, and only set it once test payments
+      // are actually switched on in Shopify admin, or the page would hand
+      // visitors a number that gets declined.
+      SHOPIFY_TEST_CARD: envField.string({
+        context: 'server',
+        access: 'public',
+        optional: true,
+        default: '',
+      }),
       SHOPIFY_STOREFRONT_PRIVATE_TOKEN: envField.string({
         context: 'server',
         access: 'secret',

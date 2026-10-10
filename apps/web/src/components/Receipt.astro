@@ -99,6 +99,18 @@ const house: Row[] = [
       </p>
 
       <h3 class="receipt__heading">This visit</h3>
+      {
+        /* On `astro dev` the browser loads the bundler's client, the dev
+           toolbar and unminified modules, roughly 3 MB of JavaScript across 50+
+           files. The figures below are still true, but they describe the dev
+           server, so say so rather than let them pass for production. */
+        import.meta.env.DEV && (
+          <p class="receipt__dev">
+            Dev server: unbundled, with dev tooling. A production build ships about 50 KB of
+            JavaScript.
+          </p>
+        )
+      }
       <dl class="receipt__rows">
         {
           visit.map((row) => (
@@ -366,6 +378,13 @@ const house: Row[] = [
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+    }
+
+    &__dev {
+      margin: 0 0 vars.$spacing-unit;
+      padding: 0.375rem 0.5rem;
+      border: 1px dashed var(--copper);
+      color: var(--copper-deep);
     }
 
     &__rows {

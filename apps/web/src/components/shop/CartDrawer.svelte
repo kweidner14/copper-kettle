@@ -168,8 +168,8 @@
     aria-label="Shopping cart"
     tabindex="-1"
     bind:this={panel}
-    in:fly={{ x: 64, duration: reduceMotion ? 0 : 320, easing: cubicOut, opacity: 0.4 }}
-    out:fly={{ x: 64, duration: reduceMotion ? 0 : 200, easing: cubicIn, opacity: 0 }}
+    in:fly={{ x: '100%', duration: reduceMotion ? 0 : 280, easing: cubicOut, opacity: 1 }}
+    out:fly={{ x: '100%', duration: reduceMotion ? 0 : 180, easing: cubicIn, opacity: 1 }}
   >
     <header class="cart-panel__header">
       <h2 class="cart-panel__title">Your cart</h2>
@@ -329,11 +329,14 @@
     }
   }
 
+  // No backdrop-filter. A blur over the whole viewport is cheap to show once,
+  // but the scrim now fades, and blurring the page every frame of that fade
+  // is what made the drawer stutter on large, high-DPI screens. A slightly
+  // deeper tint does the same job of pushing the page back.
   .cart-overlay {
     position: fixed;
     inset: 0;
-    background: rgb(23 18 14 / 45%);
-    backdrop-filter: blur(2px);
+    background: rgb(23 18 14 / 52%);
     z-index: 200;
   }
 
@@ -347,6 +350,9 @@
     width: min(27rem, 100vw);
     background: var(--paper-raised);
     border-inline-start: 1px solid var(--rule-strong);
+    // Its own compositor layer, so the slide is a transform the GPU moves
+    // rather than a repaint of the panel and everything under it.
+    will-change: transform;
 
     &__header {
       display: flex;

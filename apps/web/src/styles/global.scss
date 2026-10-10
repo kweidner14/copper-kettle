@@ -99,6 +99,10 @@ html {
   // visitor's own browser font size still counts.
   font-size: 106.25%;
   scroll-behavior: smooth;
+  // Reserve the scrollbar's width even when the page cannot scroll. The cart
+  // drawer locks scrolling while open; on Windows that removed a 17px
+  // scrollbar, so the whole page reflowed and jumped sideways mid-animation.
+  scrollbar-gutter: stable;
   // Fraunces and Archivo both benefit; stops the paper ground looking chalky.
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

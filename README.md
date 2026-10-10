@@ -77,6 +77,13 @@ the query and sort with the cursor.
 for the size it renders at, with a `srcset` and a `sizes` derived from its
 grid (`src/lib/shopify/image.ts`).
 
+**The receipt.** The home page ends with a printed receipt for the visit:
+HTML, JavaScript, font and image weight, time to first byte, largest paint and
+layout shift, measured in the visitor's browser from the Performance API, next
+to the Storefront API and CMS timings taken during the build. One small script
+fills it in when the browser is idle after load
+(`src/components/Receipt.astro`).
+
 **JavaScript.** One Svelte island, the cart drawer. The variant picker is
 server-rendered links, and the product gallery is links to the full-size
 images that a small script turns into an in-place swap.

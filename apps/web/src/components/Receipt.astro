@@ -1,0 +1,471 @@
+---
+/**
+ * The page receipt at the foot of the home page: an itemised account of how
+ * this page was made and delivered, for a store that never sells anything.
+ *
+ * Every figure is measured, none are made up. The "At build" lines come from
+ * the prerender (passed in by index.astro). The "This visit" lines start as
+ * placeholders and are filled in the visitor's browser from the Performance
+ * API once the page has loaded. Shopify's CDN sends Timing-Allow-Origin: *, so
+ * cross-origin image sizes are readable too.
+ *
+ * No island and no framework: one small script, run when the browser is idle
+ * after load, so it never competes with the page it is measuring.
+ */
+interface Props {
+  /** Milliseconds the Storefront API product query took during the build. */
+  apiMs: number
+  productCount: number
+  /** Milliseconds the CMS read took, or null when Payload was unreachable. */
+  cmsMs: number | null
+  builtAt: Date
+}
+
+const { apiMs, productCount, cmsMs, builtAt } = Astro.props
+
+const orderNumber = `CK-${builtAt.getTime().toString(36).toUpperCase()}`
+const builtLabel = builtAt.toLocaleString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: 'America/Denver',
+  timeZoneName: 'short',
+})
+
+// A barcode for the order number. Decorative, but derived from the number
+// rather than random, so the same build always prints the same bars.
+const bars = [...orderNumber.repeat(3)].flatMap((char) => {
+  const code = char.charCodeAt(0)
+  return [1 + (code % 3), 1 + ((code >> 2) % 2), 1 + ((code >> 3) % 3), 1]
+})
+const barcodeWidth = bars.reduce((sum, width) => sum + width, 0)
+let cursor = 0
+const barRects = bars.map((width, index) => {
+  const rect = { x: cursor, width, ink: index % 2 === 0 }
+  cursor += width
+  return rect
+})
+
+type Row = { label: string; value: string; measure?: string }
+
+const visit: Row[] = [
+  { label: 'Page (HTML)', value: '…', measure: 'html' },
+  { label: 'JavaScript', value: '…', measure: 'js' },
+  { label: 'Fonts', value: '…', measure: 'fonts' },
+  { label: 'Product images', value: '…', measure: 'images' },
+  { label: 'Time to first byte', value: '…', measure: 'ttfb' },
+  { label: 'Largest paint', value: '…', measure: 'lcp' },
+  { label: 'Layout shift', value: '…', measure: 'cls' },
+]
+
+const build: Row[] = [
+  { label: 'Storefront API query', value: `${Math.round(apiMs)} ms` },
+  { label: 'Products fetched', value: String(productCount) },
+  { label: 'CMS read', value: cmsMs === null ? 'offline, skipped' : `${Math.round(cmsMs)} ms` },
+  { label: 'Printed', value: builtLabel },
+]
+
+const house: Row[] = [
+  { label: 'Requests to Google Fonts', value: '0' },
+  { label: 'Trackers before you interact', value: '0' },
+  { label: 'Frameworks on this page', value: '1, for the cart' },
+]
+---
+
+<section class="receipt" aria-labelledby="receipt-title">
+  <div class="receipt__inner">
+    <header class="receipt__head">
+      <p class="receipt__eyebrow">Your receipt</p>
+      <h2 class="receipt__title" id="receipt-title">
+        Here is what you got <em>for $0.00.</em>
+      </h2>
+      <p class="receipt__lede">
+        Every line on this receipt was measured, either in your browser on this visit or
+        when the page was built. It is the closest thing to an order this store will ever
+        produce.
+      </p>
+    </header>
+
+    <div class="receipt__paper" data-receipt>
+      <p class="receipt__shop">
+        <span class="receipt__shop-name">Copper Kettle Coffee Roasters</span>
+        404 Not Found Lane, Denver, CO
+      </p>
+
+      <p class="receipt__meta">
+        <span>Order {orderNumber}</span>
+        <span>Register 01</span>
+      </p>
+
+      <h3 class="receipt__heading">This visit</h3>
+      <dl class="receipt__rows">
+        {
+          visit.map((row) => (
+            <div class="receipt__row">
+              <dt>{row.label}</dt>
+              <dd data-measure={row.measure}>{row.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <h3 class="receipt__heading">At build</h3>
+      <dl class="receipt__rows">
+        {
+          build.map((row) => (
+            <div class="receipt__row">
+              <dt>{row.label}</dt>
+              <dd>{row.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <h3 class="receipt__heading">On the house</h3>
+      <dl class="receipt__rows">
+        {
+          house.map((row) => (
+            <div class="receipt__row">
+              <dt>{row.label}</dt>
+              <dd>{row.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <dl class="receipt__rows receipt__rows--totals">
+        <div class="receipt__row">
+          <dt>Subtotal</dt>
+          <dd>$0.00</dd>
+        </div>
+        <div class="receipt__row">
+          <dt>Shipping</dt>
+          <dd>not applicable</dd>
+        </div>
+        <div class="receipt__row receipt__row--total">
+          <dt>Total</dt>
+          <dd>$0.00</dd>
+        </div>
+        <div class="receipt__row">
+          <dt>Items shipped</dt>
+          <dd>0</dd>
+        </div>
+      </dl>
+
+      <p class="receipt__thanks">Thank you for not shopping.</p>
+
+      <svg
+        class="receipt__barcode"
+        viewBox={`0 0 ${barcodeWidth} 40`}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        {barRects.filter((bar) => bar.ink).map((bar) => <rect x={bar.x} y="0" width={bar.width} height="40" />)}
+      </svg>
+      <p class="receipt__code" aria-hidden="true">{orderNumber}</p>
+
+      <p class="receipt__credit">
+        Printed by <a href="https://copperfoxlabs.com">CopperFox Labs</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Fills the "This visit" lines from the Performance API. Runs after load,
+  // when the browser is idle, and again a few seconds later so slow images
+  // and the final largest-paint candidate are counted.
+  const receipt = document.querySelector<HTMLElement>('[data-receipt]')
+
+  const kb = (bytes: number) => `${(bytes / 1024).toFixed(1)} KB`
+  const set = (key: string, value: string) => {
+    const cell = receipt?.querySelector<HTMLElement>(`[data-measure="${key}"]`)
+    if (cell) cell.textContent = value
+  }
+
+  let lcp = 0
+  let cls = 0
+  try {
+    new PerformanceObserver((list) => {
+      const last = list.getEntries().at(-1)
+      if (last) lcp = last.startTime
+    }).observe({ type: 'largest-contentful-paint', buffered: true })
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries() as (PerformanceEntry & {
+        value: number
+        hadRecentInput: boolean
+      })[]) {
+        if (!entry.hadRecentInput) cls += entry.value
+      }
+    }).observe({ type: 'layout-shift', buffered: true })
+  } catch {
+    // Browsers without these entry types leave the lines as measured so far.
+  }
+
+  function measure() {
+    const [nav] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+    const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+    // encodedBodySize is the size over the wire, and still reported when the
+    // file came from the browser cache, so a repeat visit reads the same.
+    const sum = (entries: PerformanceResourceTiming[]) =>
+      entries.reduce((total, entry) => total + entry.encodedBodySize, 0)
+
+    const scripts = resources.filter((entry) => entry.initiatorType === 'script' || /\.m?js(\?|$)/.test(entry.name))
+    const fonts = resources.filter((entry) => /\.woff2(\?|$)/.test(entry.name))
+    const images = resources.filter((entry) => entry.name.includes('cdn.shopify.com'))
+
+    if (nav) {
+      set('html', kb(nav.encodedBodySize || nav.transferSize))
+      set('ttfb', `${Math.round(nav.responseStart)} ms`)
+    }
+    set('js', `${scripts.length} ${scripts.length === 1 ? 'file' : 'files'}, ${kb(sum(scripts))}`)
+    set('fonts', `${fonts.length} ${fonts.length === 1 ? 'file' : 'files'}, ${kb(sum(fonts))}`)
+    set('images', `${images.length} sized, ${kb(sum(images))}`)
+    if (lcp) set('lcp', `${Math.round(lcp)} ms`)
+    set('cls', cls.toFixed(3))
+  }
+
+  const whenIdle = (callback: () => void) =>
+    'requestIdleCallback' in window ? requestIdleCallback(callback) : setTimeout(callback, 200)
+
+  const start = () => {
+    whenIdle(measure)
+    setTimeout(() => whenIdle(measure), 4000)
+  }
+
+  if (document.readyState === 'complete') start()
+  else window.addEventListener('load', start, { once: true })
+</script>
+
+<style lang="scss">
+  @use '../styles/variables' as vars;
+  @use '../styles/mixins' as mixins;
+
+  .receipt {
+    padding-block: vars.$spacing-unit * 10 0;
+
+    &__inner {
+      @include mixins.container;
+      display: grid;
+      gap: vars.$spacing-unit * 6;
+      align-items: start;
+
+      @include mixins.respond-to(lg) {
+        grid-template-columns: 1fr minmax(0, 26rem);
+        gap: vars.$spacing-unit * 10;
+      }
+    }
+
+    &__head {
+      max-width: 34rem;
+
+      @include mixins.respond-to(lg) {
+        position: sticky;
+        top: calc(var(--masthead-height) + #{vars.$spacing-unit * 4});
+      }
+    }
+
+    &__eyebrow {
+      @include mixins.eyebrow;
+      margin: 0 0 vars.$spacing-unit * 2;
+    }
+
+    &__title {
+      font-size: vars.$step-2;
+      margin: 0 0 vars.$spacing-unit * 2;
+
+      em {
+        font-style: italic;
+        color: var(--copper);
+      }
+    }
+
+    &__lede {
+      max-width: vars.$measure;
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 1.0625rem;
+    }
+
+    // Thermal paper: whiter than the page, a slight tilt, torn top and bottom.
+    // No shadow, per the design rules; the tear and the tilt do the work.
+    &__paper {
+      --tear: 10px;
+      position: relative;
+      width: 100%;
+      max-width: 26rem;
+      justify-self: center;
+      margin-block: var(--tear);
+      padding: vars.$spacing-unit * 4 vars.$spacing-unit * 2;
+      background: #fcfbf7;
+      color: var(--ink);
+      font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.75rem;
+
+      @include mixins.respond-to(sm) {
+        padding-inline: vars.$spacing-unit * 3;
+        font-size: 0.8125rem;
+      }
+      line-height: 1.55;
+      transform: rotate(-1.25deg);
+
+      // The torn edges: a row of small triangles in the page colour, which is
+      // what is "behind" the paper.
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        inset-inline: 0;
+        height: var(--tear);
+        background:
+          linear-gradient(135deg, #fcfbf7 50%, transparent 50%) 0 0 / var(--tear) var(--tear) repeat-x,
+          linear-gradient(-135deg, #fcfbf7 50%, transparent 50%) 0 0 / var(--tear) var(--tear) repeat-x;
+      }
+
+      &::before {
+        inset-block-start: calc(var(--tear) * -1);
+        transform: scaleY(-1);
+      }
+
+      &::after {
+        inset-block-end: calc(var(--tear) * -1);
+      }
+
+      @include mixins.respond-to(lg) {
+        justify-self: end;
+      }
+    }
+
+    &__shop {
+      display: grid;
+      margin: 0 0 vars.$spacing-unit * 2;
+      text-align: center;
+      color: var(--ink-soft);
+    }
+
+    &__shop-name {
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    &__meta {
+      display: flex;
+      justify-content: space-between;
+      margin: 0;
+      padding-block-end: vars.$spacing-unit * 1.5;
+      border-block-end: 1px dashed var(--ink);
+    }
+
+    &__heading {
+      margin: vars.$spacing-unit * 2 0 vars.$spacing-unit;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    &__rows {
+      display: grid;
+      gap: 0.125rem;
+      margin: 0;
+      padding-block-end: vars.$spacing-unit * 1.5;
+      border-block-end: 1px dashed var(--ink);
+
+      &--totals {
+        margin-block-start: vars.$spacing-unit * 1.5;
+      }
+    }
+
+    // Label, dot leader, value: the leader fills whatever space is left.
+    &__row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5ch;
+
+      // On a very narrow phone the label wraps, never the figure.
+      dt {
+        min-width: 0;
+      }
+
+      &::after {
+        content: '';
+        order: 1;
+        flex: 1;
+        min-width: 1ch;
+        border-block-end: 1px dotted var(--ink-faint);
+        transform: translateY(-0.3em);
+      }
+
+      dd {
+        order: 2;
+        margin: 0;
+        text-align: end;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      &--total {
+        font-size: 1.0625rem;
+        font-weight: 700;
+      }
+    }
+
+    &__thanks {
+      margin: vars.$spacing-unit * 3 0 vars.$spacing-unit * 2;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    &__barcode {
+      display: block;
+      width: 100%;
+      height: 3rem;
+      fill: var(--ink);
+    }
+
+    &__code {
+      margin: 0.25rem 0 vars.$spacing-unit * 2;
+      text-align: center;
+      letter-spacing: 0.3em;
+      font-size: 0.75rem;
+    }
+
+    &__credit {
+      margin: 0;
+      text-align: center;
+      color: var(--ink-soft);
+
+      a {
+        color: var(--copper);
+        text-underline-offset: 3px;
+      }
+    }
+  }
+
+  // The receipt prints as it scrolls into view: revealed top to bottom, the
+  // way it would feed out of a register. Scroll-driven, so no script, and only
+  // where the browser supports it. Elsewhere it simply sits there, printed.
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .receipt__paper {
+        animation: receipt-print linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 40%;
+      }
+    }
+  }
+
+  @keyframes receipt-print {
+    from {
+      clip-path: inset(-12px -12px 100% -12px);
+    }
+    to {
+      clip-path: inset(-12px -12px -12px -12px);
+    }
+  }
+</style>

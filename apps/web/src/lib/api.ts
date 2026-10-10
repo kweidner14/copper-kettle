@@ -32,13 +32,22 @@ async function payloadFetch<T>(collection: string, options: FetchOptions = {}): 
 // that reads it already renders without it, so an unreachable or failing CMS
 // logs a warning and reads as "no content" rather than failing the whole build
 // over an About page.
+let reachable = true
+
+/** Whether the most recent Payload read succeeded. "No such page" still counts as reachable. */
+export function payloadReachable(): boolean {
+  return reachable
+}
+
 function warnUnavailable(error: unknown): void {
+  reachable = false
   console.warn(`[payload] ${API_URL} unavailable, rendering without CMS content: ${String(error)}`)
 }
 
 export async function getPages(depth = 1): Promise<Page[]> {
   try {
     const data = await payloadFetch<PaginatedDocs<Page>>('pages', { depth, limit: 100 })
+    reachable = true
     return data.docs
   } catch (error) {
     warnUnavailable(error)
@@ -53,6 +62,7 @@ export async function getPage(slug: string, depth = 1): Promise<Page | null> {
       limit: 1,
       where: { slug: { equals: slug } },
     })
+    reachable = true
     return data.docs[0] ?? null
   } catch (error) {
     warnUnavailable(error)

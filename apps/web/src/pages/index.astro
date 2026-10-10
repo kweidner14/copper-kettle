@@ -7,20 +7,29 @@ export const prerender = true
 
 import Layout from '../layouts/Layout.astro'
 import Price from '../components/shop/Price.astro'
+import Receipt from '../components/Receipt.astro'
 import RichText from '../components/RichText.astro'
 import { createShopifyApi } from '../lib/shopify/api'
 import { fluidImage } from '../lib/shopify/image'
-import { getPage } from '../lib/api'
+import { getPage, payloadReachable } from '../lib/api'
 
+// Timed for the receipt at the foot of the page, which prints these build
+// figures alongside the ones measured in the visitor's browser.
+const builtAt = new Date()
 const shopify = createShopifyApi(Astro)
+const apiStart = performance.now()
 const { products } = await shopify.getProducts({ first: 3, sortKey: 'BEST_SELLING' })
+const apiMs = performance.now() - apiStart
 
 const [hero, ...rest] = products
 
 // Optional. The site stands up without Payload; if an editor publishes a page
 // with slug "home", its rich text renders as an extra section rather than
 // replacing the designed page.
+const cmsStart = performance.now()
 const page = await getPage('home')
+const cmsMs = performance.now() - cmsStart
+const cmsReachable = payloadReachable()
 
 const title = page?.seo?.metaTitle || 'Copper Kettle Coffee Roasters'
 const description =
@@ -181,6 +190,8 @@ const steps = [
       </section>
     )
   }
+
+  <Receipt apiMs={apiMs} productCount={products.length} cmsMs={cmsReachable ? cmsMs : null} builtAt={builtAt} />
 </Layout>
 
 <style lang="scss">

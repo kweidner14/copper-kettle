@@ -155,7 +155,32 @@ npm run typecheck -w apps/cms   # tsc
 
 ## Deploying
 
-Not deployed yet. The intended shape is the storefront on Cloudflare
-(`npm run build -w apps/web`, token set with
-`npx wrangler secret put SHOPIFY_STOREFRONT_PRIVATE_TOKEN`) and the CMS on
-Railway with Postgres and R2.
+The storefront deploys to Cloudflare Workers with static assets. A dry run
+(`npx wrangler deploy --dry-run` in `apps/web`, after a build) packages it at
+about 190 KB gzipped, with no bindings beyond the static assets and the three
+variables in `wrangler.jsonc`.
+
+```bash
+cd apps/web
+npx wrangler login
+npx wrangler secret put SHOPIFY_STOREFRONT_PRIVATE_TOKEN   # paste the private token
+npm run build
+npx wrangler deploy
+```
+
+Then, in the Cloudflare dashboard, add the custom domain
+(`copperkettle.copperfoxlabs.dev`) to the Worker. `PUBLIC_SITE_URL` in the
+build environment should match it, since canonicals, the sitemap and
+robots.txt are built from it.
+
+Before sharing the link:
+
+- In Shopify admin, confirm the store password is `coffee` (it must match
+  `SHOPIFY_STORE_PASSWORD`) and switch on the Bogus Gateway for test orders.
+  Then set `"SHOPIFY_TEST_CARD": "1"` in `wrangler.jsonc` so `/checkout` tells
+  visitors which card to use.
+- Decide on Payload. Without it, About and Privacy use the bundled copy in
+  `content/pages.json`, but the contact and newsletter forms have nowhere to
+  post. Hosting it means Railway (or similar) with Postgres; see
+  [apps/cms/README.md](apps/cms/README.md), and set `PAYLOAD_API_URL` and
+  `PUBLIC_PAYLOAD_API_URL` for the build.

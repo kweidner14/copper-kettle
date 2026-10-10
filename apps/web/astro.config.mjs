@@ -13,7 +13,14 @@ export default defineConfig({
   // SSR by default: stock levels and variant availability are read per request.
   // Static marketing pages opt back out with `export const prerender = true`.
   output: 'server',
-  adapter: cloudflare(),
+  // The adapter wires up two Cloudflare resources by default that this site
+  // never uses, and a first deploy would provision them anyway:
+  //   - Cloudflare Images, for astro:assets. Product images come resized from
+  //     Shopify's CDN (src/lib/shopify/image.ts), so "passthrough" it is.
+  //   - A KV namespace for Astro sessions. The cart is an httpOnly cookie
+  //     holding a Shopify cart id; nothing reads Astro.session. See below.
+  adapter: cloudflare({ imageService: 'passthrough' }),
+  session: false,
 
   // One URL per page, without a trailing slash, which is how every link on the
   // site is written. The default "directory" format builds about/index.html,

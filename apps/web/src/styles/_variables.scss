@@ -62,8 +62,8 @@ $color-border: $rule;
 // Fraunces carries the brand: it has a real optical-size axis and enough warmth
 // to read as craft rather than as a default serif. Archivo does the working
 // text, where a neutral grotesque stays out of the way.
-$font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-$font-body: 'Archivo Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+$font-display: 'Fraunces Variable', 'Fraunces Fallback', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+$font-body: 'Archivo Variable', 'Archivo Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
 
 $font-family-base: $font-body;
 $font-family-heading: $font-display;

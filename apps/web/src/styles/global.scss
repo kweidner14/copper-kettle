@@ -1,6 +1,42 @@
 @use 'variables' as vars;
 @use 'mixins' as mixins;
 
+// Metric-matched fallbacks. Until the self-hosted fonts arrive, text renders
+// in Georgia and Arial scaled and spaced to occupy the same room as Fraunces
+// and Archivo, so lines wrap in the same places and nothing moves on the swap.
+// Without these the hero copy reflowed by about 100px when Fraunces loaded.
+// Figures derived from each font's average character width and vertical
+// metrics (Capsize's published metrics): size-adjust is the width ratio, the
+// overrides are the web font's ascent and descent divided by it.
+@font-face {
+  font-family: 'Fraunces Fallback';
+  src: local('Georgia');
+  size-adjust: 105.2%;
+  ascent-override: 92.97%;
+  descent-override: 24.24%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Fraunces Fallback';
+  font-style: italic;
+  src: local('Georgia Italic'), local('Georgia-Italic');
+  // Matched against Fraunces Italic, which runs narrower than the upright.
+  size-adjust: 98.6%;
+  ascent-override: 99.24%;
+  descent-override: 25.88%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial'), local('ArialMT');
+  size-adjust: 98.7%;
+  ascent-override: 88.96%;
+  descent-override: 21.28%;
+  line-gap-override: 0%;
+}
+
 :root {
   // Below lg the header carries a second row for the nav, so it is taller.
   // This has to live on :root, not on .site-header: `.has-fixed-header` pads

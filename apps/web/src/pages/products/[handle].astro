@@ -241,31 +241,39 @@ const specs = [
       </div>
     </div>
   </article>
+
+  {/* Outside the swapped regions, so it survives a variant change and can
+      announce the new price and stock line (scripts/variant-swap.ts). */}
+  <p class="sr-only" id="variant-status" role="status" aria-live="polite"></p>
 </Layout>
 
 <script>
+  // Variant changes swap the page in place (see the module for the details).
+  import '../../scripts/variant-swap'
+
   // Swaps the main frame in place. Without this, each thumbnail is a plain link
   // to a large copy of the image, which is a worse experience but not a broken one.
-  const main = document.querySelector<HTMLImageElement>('[data-gallery-main]')
-  const thumbs = document.querySelectorAll<HTMLAnchorElement>('[data-gallery-thumb]')
+  // Delegated from the document, because a variant change can replace the
+  // whole media column, thumbnails included.
+  document.addEventListener('click', (event) => {
+    const thumb = (event.target as Element | null)?.closest?.<HTMLAnchorElement>('[data-gallery-thumb]')
+    const main = document.querySelector<HTMLImageElement>('[data-gallery-main]')
+    if (!thumb || !main) return
+    event.preventDefault()
 
-  thumbs.forEach((thumb) => {
-    thumb.addEventListener('click', (event) => {
-      if (!main) return
-      event.preventDefault()
+    // srcset first: while it is set, the browser picks from it and ignores src,
+    // so changing src alone would leave the old image showing.
+    if (thumb.dataset.srcset) main.srcset = thumb.dataset.srcset
+    main.src = thumb.dataset.src ?? thumb.href
+    main.alt = thumb.dataset.alt ?? ''
+    // Kept in step with the source so the frame never reflows mid-swap.
+    if (thumb.dataset.width) main.width = Number(thumb.dataset.width)
+    if (thumb.dataset.height) main.height = Number(thumb.dataset.height)
 
-      // srcset first: while it is set, the browser picks from it and ignores src,
-      // so changing src alone would leave the old image showing.
-      if (thumb.dataset.srcset) main.srcset = thumb.dataset.srcset
-      main.src = thumb.dataset.src ?? thumb.href
-      main.alt = thumb.dataset.alt ?? ''
-      // Kept in step with the source so the frame never reflows mid-swap.
-      if (thumb.dataset.width) main.width = Number(thumb.dataset.width)
-      if (thumb.dataset.height) main.height = Number(thumb.dataset.height)
-
-      thumbs.forEach((other) => other.removeAttribute('aria-current'))
-      thumb.setAttribute('aria-current', 'true')
-    })
+    document
+      .querySelectorAll('[data-gallery-thumb]')
+      .forEach((other) => other.removeAttribute('aria-current'))
+    thumb.setAttribute('aria-current', 'true')
   })
 </script>
 
@@ -366,6 +374,12 @@ const specs = [
       display: grid;
       align-content: start;
       gap: vars.$spacing-unit * 4;
+      transition: opacity 0.15s ease;
+
+      // A variant change that was not prefetched: dim while it loads.
+      &.is-loading {
+        opacity: 0.55;
+      }
 
       @include mixins.respond-to(lg) {
         max-width: 30rem;

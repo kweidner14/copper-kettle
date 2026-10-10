@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { cubicIn, cubicOut } from 'svelte/easing'
+  import { fade, fly } from 'svelte/transition'
   import type { Cart } from '../../lib/shopify/cart'
   import { fixedImage } from '../../lib/shopify/image'
   import { formatMoney } from '../../lib/shopify/money'
@@ -27,6 +29,12 @@
   let busy = $state(false)
   let notice = $state<string | null>(null)
   let panel = $state<HTMLElement | null>(null)
+  // True between pressing Add to cart and Shopify answering. The drawer opens
+  // on the press, so it never sits there waiting on the network.
+  let adding = $state(false)
+  // Svelte transitions run through the Web Animations API, which the global
+  // reduced-motion CSS cannot reach, so they read the preference themselves.
+  let reduceMotion = $state(false)
 
   const count = $derived(cart?.totalQuantity ?? 0)
   const lines = $derived(cart?.lines.nodes ?? [])
@@ -95,15 +103,27 @@
     // The PDP form posts through a plain script (see src/scripts/cart.ts) so the
     // add-to-cart button needs no framework of its own. It announces the result
     // here, which is what opens the drawer.
+    const onPending = () => {
+      adding = true
+      notice = null
+      open = true
+    }
+
     const onUpdated = (event: Event) => {
       const detail = (event as CustomEvent<{ cart: Cart | null; notice?: string }>).detail
       if (detail?.cart) cart = detail.cart
       notice = detail?.notice ?? null
+      adding = false
       open = true
     }
 
+    reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.addEventListener('cart:pending', onPending)
     window.addEventListener('cart:updated', onUpdated)
-    return () => window.removeEventListener('cart:updated', onUpdated)
+    return () => {
+      window.removeEventListener('cart:pending', onPending)
+      window.removeEventListener('cart:updated', onUpdated)
+    }
   })
 
   $effect(() => {
@@ -138,6 +158,7 @@
     class="cart-overlay"
     role="presentation"
     onclick={() => (open = false)}
+    transition:fade={{ duration: reduceMotion ? 0 : 200 }}
   ></div>
 
   <div
@@ -147,6 +168,8 @@
     aria-label="Shopping cart"
     tabindex="-1"
     bind:this={panel}
+    in:fly={{ x: 64, duration: reduceMotion ? 0 : 320, easing: cubicOut, opacity: 0.4 }}
+    out:fly={{ x: 64, duration: reduceMotion ? 0 : 200, easing: cubicIn, opacity: 0 }}
   >
     <header class="cart-panel__header">
       <h2 class="cart-panel__title">Your cart</h2>
@@ -156,11 +179,19 @@
       </button>
     </header>
 
+    {#if adding}
+      <p class="cart-panel__notice cart-panel__notice--pending" role="status">
+        Adding to your cart…
+      </p>
+    {/if}
+
     {#if notice}
       <p class="cart-panel__notice" role="status">{notice}</p>
     {/if}
 
-    {#if lines.length === 0}
+    {#if lines.length === 0 && adding}
+      <!-- First item on its way: nothing to list yet, and "empty" would be wrong. -->
+    {:else if lines.length === 0}
       <p class="cart-panel__empty">Your cart is empty. It is the most honest thing on this site.</p>
     {:else}
       <ul class="cart-lines">
